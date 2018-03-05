@@ -21,10 +21,6 @@
                     <td><a :href="task.URL">{{ task.URL }}</a> </td>
                 </tr>
                 <tr>
-                    <th>状态</th>
-                    <td>{{ task.State }}</td>
-                </tr>
-                <tr>
                     <th>任务理由</th>
                     <td>{{ task.Reason }}</td>
                 </tr>
