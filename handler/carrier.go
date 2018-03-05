@@ -224,7 +224,7 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 		log.Error(err)
 	}
 	r = regexp.MustCompile(`fid:"(.*?)"`)
-	p = r.FindStringSubmatch(l)
+	p = r.FindStringSubmatch(l2)
 	var fid string
 	if len(p) >= 2 {
 		fid = p[1]
