@@ -212,9 +212,11 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if len(p) >= 2 {
 		fn = p[1]
 	} else {
+		model.UpdateTaskStatus(model.Db, id, state, "", "", l)
 		return
 	}
 	if state != "Finished" {
+		model.UpdateTaskStatus(model.Db, id, state, fn, "", l)
 		return
 	}
 	model.UpdateTaskStatus(model.Db, id, "Uploading", fn, "", l)
