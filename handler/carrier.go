@@ -71,7 +71,7 @@ func TriggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		task, err = model.NewTask(model.Db, title, authorName, description, url, "Rejected", "No keywords hit")
 	} else {
 		reason := fmt.Sprintf("Keywords %v hit", hit)
-		task, err = model.NewTask(model.Db, title, authorName, description, url, "Running", reason)
+		task, err = model.NewTask(model.Db, title, authorName, description, url, "Downloading", reason)
 	}
 	if err != nil {
 		log.Fatalf("failed while writing task to db: %v", err)
@@ -84,9 +84,9 @@ func TriggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		return
 	}
 
-	if task.State == "Running" {
+	if task.State == "Downloading" {
 		runningCarriers[task.ID] = Carrier{task: task, kill: make(chan bool)}
-		go runCarrier(task.ID, runningCarriers[task.ID].kill, GlobCfg.TEMP_PATH, GlobCfg.PYTHON_CMD, "-u", "carrier.py", task.URL, GlobCfg.ND_FOLDER)
+		go runCarrier(task.ID, runningCarriers[task.ID].kill, task.URL, GlobCfg.ND_FOLDER)
 	}
 
 	res := map[string]interface{}{
@@ -155,7 +155,7 @@ func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)  {
 	responseJson(w, res, http.StatusOK)
 }
 
-func runCarrier(id int64, kill chan bool, tempPath string, c string, a ...string) {
+func runCmd(id int64, kill chan bool, tempPath string, c string, a ...string) (state string) {
 	tempPath = tempPath + "/" + strconv.FormatInt(id, 10)
 	os.MkdirAll(tempPath, os.ModePerm)
 	fo, err := os.Create(tempPath + "/" + strconv.FormatInt(id, 10) + ".log")
@@ -167,6 +167,7 @@ func runCarrier(id int64, kill chan bool, tempPath string, c string, a ...string
 		log.Error(err)
 	}
 	cmd := exec.Command(c, a...)
+	cmd.Dir = "static"
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
 	go io.Copy(fo, stdout)
@@ -178,7 +179,6 @@ func runCarrier(id int64, kill chan bool, tempPath string, c string, a ...string
 		done <- cmd.Wait()
 	}()
 
-	var state string
 	select {
 	case <-kill:
 		if err := cmd.Process.Kill(); err != nil {
@@ -196,21 +196,40 @@ func runCarrier(id int64, kill chan bool, tempPath string, c string, a ...string
 			state = "Finished"
 		}
 	}
-	if state != "Running" {
-		delete(runningCarriers, id)
-	}
+	return
+}
 
+func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
+	defer delete(runningCarriers, id)
+	state := runCmd(id, kill, GlobCfg.TEMP_PATH, GlobCfg.PYTHON_CMD, "-u", "../download.py", url)
 	l, err := readLog(id)
 	if err != nil {
 		log.Error(err)
 	}
-	r := regexp.MustCompile(`fid:"(.*?)"`)
+	r := regexp.MustCompile(`fn:"(.*?)"`)
 	p := r.FindStringSubmatch(l)
+	var fn string
+	if len(p) >= 2 {
+		fn = p[1]
+	} else {
+		return
+	}
+	if state != "Finished" {
+		return
+	}
+	model.UpdateTaskStatus(model.Db, id, "Uploading", fn, "", l)
+	state = runCmd(id, kill, GlobCfg.TEMP_PATH, GlobCfg.PYTHON_CMD, "-u", "../syncBaidu.py", fn, ndFolder)
+	l2, err := readLog(id)
+	if err != nil {
+		log.Error(err)
+	}
+	r = regexp.MustCompile(`fid:"(.*?)"`)
+	p = r.FindStringSubmatch(l)
 	var fid string
 	if len(p) >= 2 {
 		fid = p[1]
 	}
 	shareLink := fmt.Sprintf("链接：%s?fid=%s 密码：%s", GlobCfg.ND_SHARELINK, fid, GlobCfg.ND_SHAREPASS)
-	model.UpdateTaskStatus(model.Db, id, state, shareLink, l)
+	model.UpdateTaskStatus(model.Db, id, state, fn, shareLink, l + l2)
 	return
 }

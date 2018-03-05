@@ -1,32 +1,22 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-from youtube_dl import YoutubeDL
 from io import StringIO
 from bypy import ByPy
 import sys
 import logging
 
 if len(sys.argv) <= 1:
-    logging.error("No url specified")
+    logging.error("No filename specified")
     exit()
 
-url = sys.argv[1]
+fn = sys.argv[1]
 folder = "/"
 
 if len(sys.argv) > 2:
     folder = sys.argv[2] + folder
 
-print(url)
-
-with YoutubeDL({format: "best", 'outtmpl': '%(title)s.%(ext)s'}) as ydl:
-    info_dict = ydl.extract_info(url, download=True)
-    fn = ydl.prepare_filename(info_dict)
-
-print(fn)
-
-bp=ByPy()
-bp.verbose=True
+bp=ByPy(verbose=1, debug=True)
 bp.upload(fn, folder + fn)
 
 sys.stdout = mystdout = StringIO()

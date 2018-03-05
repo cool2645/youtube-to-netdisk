@@ -15,6 +15,7 @@ type Task struct {
 	URL         string
 	State       string
 	Reason      string
+	FileName    string
 	ShareLink   string
 	Log         string `sql:"type:text;"`
 	CreatedAt   time.Time
@@ -44,7 +45,7 @@ func CreateTask(db *gorm.DB, task Task) (newTask Task, err error) {
 }
 
 func GetTasks(db *gorm.DB, state string, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
-	noLog := "id, title, description, author, url, state, reason, share_link, created_at, updated_at"
+	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
@@ -72,7 +73,7 @@ func GetTask(db *gorm.DB, id int64) (task Task, err error) {
 	return
 }
 
-func UpdateTaskStatus(db *gorm.DB, id int64, state string, shareLink string, log string) (err error) {
+func UpdateTaskStatus(db *gorm.DB, id int64, state string, fileName string, shareLink string, log string) (err error) {
 	var task Task
 	err = db.Where("id = ?", id).Find(&task).Error
 	if err != nil {
@@ -80,6 +81,7 @@ func UpdateTaskStatus(db *gorm.DB, id int64, state string, shareLink string, log
 		return
 	}
 	task.State = state
+	task.FileName = fileName
 	task.ShareLink = shareLink
 	task.Log = log
 	err = db.Model(&task).Updates(task).Error

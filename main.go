@@ -50,7 +50,7 @@ func main() {
 	mux.POST("/api/keyword", handler.NewKeyword)
 	mux.DELETE("/api/keyword", handler.DeleteKeyword)
 
-	//mux.ServeFiles("/static/*filepath", http.Dir("static"))
+	mux.ServeFiles("/static/*filepath", http.Dir("static"))
 
 	mux.NotFound = http.HandlerFunc(NotFoundHandler)
 
