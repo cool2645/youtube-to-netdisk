@@ -1,0 +1,18 @@
+port = 9826
+
+allow_origin = ["*"]
+
+api_key = "helloworld"
+tg_key = "123456789:AAHEUURbcdefghijklmn123opqrstuvwxyz"
+
+db_name = "yt2nd"
+db_user = "root"
+db_pass = ""
+db_charset = "utf8mb4,utf8"
+db_collation = "utf8mb4_unicode_ci"
+
+python_cmd = "python3"
+temp_path = "/tmp/yt2nd"
+netdisk_folder = "nijigasaki"
+netdisk_sharelink = "https://pan.baidu.com/s/hhhhhhh"
+netdisk_sharepass = "1234"
