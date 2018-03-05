@@ -21,6 +21,8 @@ bp.upload(fn, folder + fn)
 
 sys.stdout = mystdout = StringIO()
 
+bp.debug=False
+bp.verbose=0
 bp.meta(folder + fn, '$i')
 
 sys.stdout = sys.__stdout__

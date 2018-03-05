@@ -34,7 +34,14 @@ func GetTasks(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		}
 		perPage = uint(perPage64)
 	}
-	tasks, total, err := model.GetTasks(model.Db, state, order, page, perPage)
+	var tasks []model.Task
+	var total uint
+	var err error
+	if state == "Rejected" {
+		tasks, total, err = model.GetRejTasks(model.Db, order, page, perPage)
+	} else {
+		tasks, total, err = model.GetTasks(model.Db, order, page, perPage)
+	}
 	if err != nil {
 		logging.Error(err)
 		if err.Error() == "GetTasks: sql: no rows in result set" {

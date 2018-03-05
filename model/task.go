@@ -44,19 +44,39 @@ func CreateTask(db *gorm.DB, task Task) (newTask Task, err error) {
 	return
 }
 
-func GetTasks(db *gorm.DB, state string, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
+func GetTasks(db *gorm.DB, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
 	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
-	err = db.Where("state like ?", state).
+	err = db.Where("state <> ?", "Rejected").
 		Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
 		Select(noLog).Find(&tasks).Error
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return
 	}
-	err = db.Model(&Task{}).Where("state like ?", state).Count(&total).Error
+	err = db.Model(&Task{}).Where("state <> ?", "Rejected").Count(&total).Error
+	if err != nil {
+		err = errors.Wrap(err, "GetTasks")
+		return
+	}
+	return
+}
+
+func GetRejTasks(db *gorm.DB, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
+	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
+	if perPage == 0 {
+		perPage = 10
+	}
+	err = db.Where("state = ?", "Rejected").
+		Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
+		Select(noLog).Find(&tasks).Error
+	if err != nil {
+		err = errors.Wrap(err, "GetTasks")
+		return
+	}
+	err = db.Model(&Task{}).Where("state = ?", "Rejected").Count(&total).Error
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return
