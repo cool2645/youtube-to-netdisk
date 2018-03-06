@@ -1,9 +1,9 @@
 <template>
-    <div>
+    <center>
         <ul>
             <li v-for="route in routes" v-if="route.title"><a href="javascript:;" @click="$router.push(route.path)" >{{route.title}}</a></li>
         </ul>
-    </div>
+    </center>
 </template>
 
 <script>
@@ -15,8 +15,8 @@
 
 <style scoped>
     ul {
-        margin-top: 20px;
-        margin-bottom: 20px;
+        padding: 0;
+        margin: 20px auto;
     }
     li {
         display: inline;

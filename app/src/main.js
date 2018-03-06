@@ -5,6 +5,8 @@ import Tasks from './Tasks.vue'
 import Keyword from './Keyword.vue'
 import LaravelVuePagination from 'laravel-vue-pagination';
 import Running from './Running.vue'
+import Title from './Title.vue'
+import Footer from './Footer.vue'
 
 import './style.css'
 Vue.use(VueRouter);
@@ -31,5 +33,7 @@ new Vue({
     },
     components: {
         'nav-section': Nav,
+        'title-section': Title,
+        'footer-section': Footer
     },
 });

@@ -23,7 +23,7 @@
                     <td>{{ task.State }}</td>
                     <td>{{ task.Reason }}</td>
                     <td><a :href="'/static/' + task.FileName">{{ task.FileName }}</a></td>
-                    <td>{{ task.ShareLink }}</td>
+                    <td v-html="highlight(task.ShareLink)"></td>
                     <td><a href="javascript:;" @click="showTaskLog(task.ID)">显示日志</a></td>
                 </tr>
                 </tbody>
@@ -82,6 +82,11 @@
             },
         },
         methods: {
+            highlight(text) {
+                let reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
+                text = text.replace(reg, "<a href='$1$2'>$1$2</a>");
+                return text;
+            },
             updateData() {
                 fetch(config.urlPrefix + '/task?' + urlParam({
                     page: this.page,
@@ -127,7 +132,7 @@
 </script>
 
 <style scoped>
-    td {
+    th,td {
         white-space: nowrap;
     }
 </style>
