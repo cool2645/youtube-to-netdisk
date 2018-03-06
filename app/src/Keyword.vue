@@ -28,10 +28,10 @@
                                 }
                             }
                         );
-                        setTimeout(() => {this.updateData()}, 3000);
+                        if(!this._isBeingDestroyed) setTimeout(() => {this.updateData()}, 3000);
                     })
                     .catch(error => {
-                        setTimeout(() => {this.updateData()}, 3000);
+                        if(!this._isBeingDestroyed) setTimeout(() => {this.updateData()}, 3000);
                     });
             },
         },
