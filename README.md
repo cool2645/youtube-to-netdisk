@@ -118,7 +118,7 @@ Bypy will ask you for authorization, afterwards it will be able to access your n
 
 Some explanation of configs.
 
-+ **python_cmd** The python command. Usually it is `python3`, for some OS, like ArchLinux, it is `python`.
++ **python_cmd** The python command. Usually it is `python3`, for some OS, like ArchLinux, it could be `python`.
 + **temp_path** The path where temp file for logs are stored.
 + **netdisk_folder** To which videos are uploaded.
 + **netdisk_sharelink** && **netdisk_sharepass** You can create a share link of the folder (parent of the video), after that the program can generate a share link for each video uploaded, e.g. https://pan.baidu.com/s/xxxxxx?fid=1111111

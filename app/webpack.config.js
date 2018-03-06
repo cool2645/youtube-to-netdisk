@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack');
-const SWPrecacheWebpackPlugin = require('sw-precache-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -52,14 +51,6 @@ module.exports = {
         preserveLineBreaks: false,
         removeComments: true,
       } : false
-    }),
-    new SWPrecacheWebpackPlugin({
-      cacheId: 'ss-monitor',
-      dontCacheBustUrlsMatching: /\.\w{8}\./,
-      filename: '../service-worker.js',
-      minify: true,
-      navigateFallback: '/index.html',
-      staticFileGlobsIgnorePatterns: [/\.map$/, /asset-manifest\.json$/],
     }),
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common'

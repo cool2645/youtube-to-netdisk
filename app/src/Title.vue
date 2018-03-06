@@ -13,7 +13,7 @@
             }
         },
         mounted() {
-            if (!fetch) {
+            if (typeof fetch !== 'function') {
                 this.error = "内核太旧尚未支持，请升级或更换浏览器或帮助完善代码来正常浏览本页面(>ω<)"
             }
         }
