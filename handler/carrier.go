@@ -182,7 +182,7 @@ func readLog(k int64) (log string, err error) {
 	return
 }
 
-func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)  {
+func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	taskID, err := strconv.ParseInt(ps.ByName("id"), 10, 64)
 	if err != nil {
 		log.Error(err)
@@ -205,7 +205,7 @@ func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)  {
 		res := map[string]interface{}{
 			"code":   http.StatusNotFound,
 			"result": false,
-			"msg": "Not running task",
+			"msg":    "Not running task",
 		}
 		responseJson(w, res, http.StatusNotFound)
 	}
@@ -281,6 +281,10 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if err != nil {
 		log.Error(err)
 	}
+	if state != "Finished" {
+		model.UpdateTaskStatus(model.Db, id, state, fn, "", l+l2)
+		return
+	}
 	r = regexp.MustCompile(`fid:"(.*?)"`)
 	p = r.FindStringSubmatch(l2)
 	var fid string
@@ -288,6 +292,6 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 		fid = p[1]
 	}
 	shareLink := fmt.Sprintf("链接：%s?fid=%s 密码：%s", GlobCfg.ND_SHARELINK, fid, GlobCfg.ND_SHAREPASS)
-	model.UpdateTaskStatus(model.Db, id, state, fn, shareLink, l + l2)
+	model.UpdateTaskStatus(model.Db, id, state, fn, shareLink, l+l2)
 	return
 }
