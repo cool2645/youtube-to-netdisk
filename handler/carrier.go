@@ -147,12 +147,21 @@ func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)  {
 		responseJson(w, res, http.StatusBadRequest)
 		return
 	}
-	runningCarriers[taskID].kill <- true
-	res := map[string]interface{}{
-		"code":   http.StatusOK,
-		"result": true,
+	if v, ok := runningCarriers[taskID]; ok {
+		v.kill <- true
+		res := map[string]interface{}{
+			"code":   http.StatusOK,
+			"result": true,
+		}
+		responseJson(w, res, http.StatusOK)
+	} else {
+		res := map[string]interface{}{
+			"code":   http.StatusOK,
+			"result": false,
+			"msg": "Not running task",
+		}
+		responseJson(w, res, http.StatusOK)
 	}
-	responseJson(w, res, http.StatusOK)
 }
 
 func runCmd(id int64, kill chan bool, tempPath string, c string, a ...string) (state string) {
