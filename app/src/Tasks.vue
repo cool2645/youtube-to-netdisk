@@ -53,13 +53,13 @@
         },
         computed: {
             title() {
-                if (this.$route.path === "/tasks")
+                if (this.$route.path !== "/reject-tasks")
                     return "已启动任务";
                 else
                     return "已拒绝任务";
             },
             rejected() {
-                return this.$route.path !== "/tasks"
+                return this.$route.path === "/reject-tasks"
             },
             data() {
                 return this.jsonSource.result ? this.jsonSource.data.data : []

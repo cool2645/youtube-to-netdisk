@@ -13,7 +13,7 @@ Vue.use(VueRouter);
 Vue.component('pagination', LaravelVuePagination);
 
 const routes = [
-    {path: '/', redirect: '/tasks'},
+    {path: '/', component: Tasks},
     {title: '已启动任务', path: '/tasks', component: Tasks},
     {title: '正在运行', path: '/running-tasks', component: Running},
     {title: '已拒绝任务', path: '/reject-tasks', component: Tasks},
