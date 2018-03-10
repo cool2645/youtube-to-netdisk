@@ -2,7 +2,8 @@ port = 9826
 
 allow_origin = ["*"]
 
-api_key = "helloworld"
+web_url = "https://yt2nd.org"
+tg_enable = false
 tg_key = "123456789:AAHEUURbcdefghijklmn123opqrstuvwxyz"
 
 db_name = "yt2nd"

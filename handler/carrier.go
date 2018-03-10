@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"io/ioutil"
 	"github.com/pkg/errors"
+	"github.com/cool2645/youtube-to-netdisk/broadcaster"
 )
 
 type Carrier struct {
@@ -71,10 +72,19 @@ func newTask(w http.ResponseWriter, title string, authorName string, description
 	}
 	var task model.Task
 	if len(hit) == 0 {
-		task, err = model.NewTask(model.Db, title, authorName, description, url, "Rejected", "No keywords hit")
+		reason := "No keywords hit"
+		task, err = model.NewTask(model.Db, title, authorName, description, url, "Rejected", reason)
+		if GlobCfg.TG_ENABLE {
+			msgf := fmt.Sprintf("⛔️ 已拒绝任务：%s，%s，原因：%s，[点击查看](%s%s)", title, authorName, reason, GlobCfg.WEB_URL, "/reject-tasks")
+			broadcaster.Broadcast(msgf)
+		}
 	} else {
 		reason := fmt.Sprintf("Keywords %v hit", hit)
 		task, err = model.NewTask(model.Db, title, authorName, description, url, "Downloading", reason)
+		if GlobCfg.TG_ENABLE {
+			msgf := fmt.Sprintf("🔶 已创建任务：%s，%s，原因：%s，[点击查看](%s%s)", title, authorName, reason, GlobCfg.WEB_URL, "/tasks")
+			broadcaster.Broadcast(msgf)
+		}
 	}
 	if err != nil {
 		log.Fatalf("failed while writing task to db: %v", err)
@@ -273,9 +283,17 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	}
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l)
+		if GlobCfg.TG_ENABLE {
+			msgf := fmt.Sprintf("❗️ 下载失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			broadcaster.Broadcast(msgf)
+		}
 		return
 	}
 	model.UpdateTaskStatus(model.Db, id, "Uploading", fn, "", l)
+	if GlobCfg.TG_ENABLE {
+		msgf := fmt.Sprintf("✅ 下载完成：%s，[点击查看](%s%s)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks")
+		broadcaster.Broadcast(msgf)
+	}
 	state = runCmd(id, kill, GlobCfg.TEMP_PATH, GlobCfg.PYTHON_CMD, "-u", "../syncBaidu.py", fn, ndFolder)
 	l2, err := readLog(id)
 	if err != nil {
@@ -283,6 +301,10 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	}
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l+l2)
+		if GlobCfg.TG_ENABLE {
+			msgf := fmt.Sprintf("❗️ 上传失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			broadcaster.Broadcast(msgf)
+		}
 		return
 	}
 	r = regexp.MustCompile(`fid:"(.*?)"`)
@@ -293,5 +315,9 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	}
 	shareLink := fmt.Sprintf("链接：%s?fid=%s 密码：%s", GlobCfg.ND_SHARELINK, fid, GlobCfg.ND_SHAREPASS)
 	model.UpdateTaskStatus(model.Db, id, state, fn, shareLink, l+l2)
+	if GlobCfg.TG_ENABLE {
+		msgf := fmt.Sprintf("✅ 上传完成：%s，[点击查看](%s%s)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks")
+		broadcaster.Broadcast(msgf)
+	}
 	return
 }

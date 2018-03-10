@@ -5,6 +5,8 @@ var GlobCfg = Config{}
 type Config struct {
 	PORT         int64    `toml:"port"`
 	ALLOW_ORIGIN []string `toml:"allow_origin"`
+	WEB_URL      string   `toml:"web_url"`
+	TG_ENABLE    bool     `toml:"tg_enable"`
 	TG_KEY       string   `toml:"tg_key"`
 	DB_NAME      string   `toml:"db_name"`
 	DB_USER      string   `toml:"db_user"`

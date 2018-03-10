@@ -133,6 +133,17 @@ The web interface will be listening at **port**.
 
 Videos will be stored at folder `static` (Perhaps should be created manually?)
 
+### Telegram notification
+
+Turn on the **tg_enable** flag in config will enable this feature.
+
+Fill in **tg_key** with your telegram bot key, and then this program will push notifications via your telegram bot.
+
+Listening commands:
+
+* **/carrier_subscribe** Set up subscription for this chat.
+* **/carrier_unsubscribe** Suspend subscription for this chat.
+
 ### Build Front-End
 
 Build Front-end so that you can see tasks and running processes from the website.

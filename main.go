@@ -13,6 +13,7 @@ import (
 	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/cool2645/youtube-to-netdisk/handler"
 	. "github.com/cool2645/youtube-to-netdisk/config"
+	"github.com/cool2645/youtube-to-netdisk/broadcaster"
 )
 
 var mux = httprouter.New()
@@ -35,8 +36,12 @@ func main() {
 	log.Infof("Database init done")
 	defer db.Close()
 
-	db.AutoMigrate(&model.Keyword{}, &model.Task{})
+	db.AutoMigrate(&model.Keyword{}, &model.Task{}, &model.Subscriber{})
 	model.Db = db
+
+	if GlobCfg.TG_ENABLE {
+		go broadcaster.ServeTelegram(model.Db, GlobCfg.TG_KEY)
+	}
 
 	mux.GET("/api", handler.Pong)
 
