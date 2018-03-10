@@ -48,7 +48,10 @@ func TriggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 	if len(req.Form["author_name"]) == 1 {
 		authorName = req.Form["author_name"][0]
 	}
+	newTask(w, title, authorName, description, url)
+}
 
+func newTask(w http.ResponseWriter, title string, authorName string, description string, url string) {
 	keywords, err := model.GetKeywords(model.Db)
 	if err != nil {
 		log.Fatalf("failed while getting keywords from db: %v", err)
@@ -95,6 +98,50 @@ func TriggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		"data":   task,
 	}
 	responseJson(w, res, http.StatusOK)
+}
+
+func Retry(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	taskID, err := strconv.ParseInt(ps.ByName("id"), 10, 64)
+	if err != nil {
+		log.Error(err)
+		res := map[string]interface{}{
+			"code":   http.StatusBadRequest,
+			"result": false,
+			"msg":    "Error occurred parsing task id.",
+		}
+		responseJson(w, res, http.StatusBadRequest)
+		return
+	}
+	if _, ok := runningCarriers[taskID]; ok {
+		res := map[string]interface{}{
+			"code":   http.StatusOK,
+			"result": false,
+			"msg":    "Running task cannot be retried, kill it first.",
+		}
+		responseJson(w, res, http.StatusNotFound)
+		return
+	}
+	task, err := model.GetTask(model.Db, taskID)
+	if err != nil {
+		if err.Error() == "GetTask: record not found" {
+			res := map[string]interface{}{
+				"code":   http.StatusNotFound,
+				"result": false,
+				"msg":    "Error occurred retrieving task: " + err.Error(),
+			}
+			responseJson(w, res, http.StatusNotFound)
+			return
+		}
+		log.Fatalf("failed while reading task from db: %v", err)
+		res := map[string]interface{}{
+			"code":   http.StatusInternalServerError,
+			"result": false,
+			"msg":    "Error occurred retrieving task: " + err.Error(),
+		}
+		responseJson(w, res, http.StatusInternalServerError)
+		return
+	}
+	newTask(w, task.Title, task.Author, task.Description, task.URL)
 }
 
 func GetRunningTaskStatus(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
@@ -156,11 +203,11 @@ func KillTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)  {
 		responseJson(w, res, http.StatusOK)
 	} else {
 		res := map[string]interface{}{
-			"code":   http.StatusOK,
+			"code":   http.StatusNotFound,
 			"result": false,
 			"msg": "Not running task",
 		}
-		responseJson(w, res, http.StatusOK)
+		responseJson(w, res, http.StatusNotFound)
 	}
 }
 

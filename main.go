@@ -42,6 +42,8 @@ func main() {
 
 	mux.POST("/api/trigger", handler.TriggerTask)
 	mux.POST("/api/kill/:id", handler.KillTask)
+	mux.GET("/api/retry/:id", handler.Retry)
+	mux.POST("/api/retry/:id", handler.Retry)
 	mux.GET("/api/running", handler.GetRunningTaskStatus)
 	mux.GET("/api/task", handler.GetTasks)
 	mux.GET("/api/task/:id", handler.GetTask)

@@ -45,6 +45,12 @@ Refer to these APIs in case you need.
 + Description: Kill a running task.
 + Args: {id}: ID of the task.
 
++ Method: GET/POST
++ Address: /api/retry/{id}
++ Content-Type: application/x-www-form-urlencoded
++ Description: Retry a task.
++ Args: {id}: ID of the task.
+
 + Method: GET
 + Address: /api/running
 + Content-Type: application/x-www-form-urlencoded
