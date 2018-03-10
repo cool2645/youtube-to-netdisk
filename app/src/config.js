@@ -1,3 +1,4 @@
 export default {
-    urlPrefix: "https://carrier.cool2645.com/api",
+    urlPrefix: "/api",
+    telegram: ""
 }

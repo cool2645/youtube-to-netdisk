@@ -133,7 +133,7 @@ The web interface will be listening at **port**.
 
 Videos will be stored at folder `static` (Perhaps should be created manually?)
 
-### Telegram notification
+### Telegram Notification
 
 Turn on the **tg_enable** flag in config will enable this feature.
 
