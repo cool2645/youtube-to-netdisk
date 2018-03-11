@@ -1,4 +1,5 @@
 export default {
     urlPrefix: "/api",
-    telegram: ""
+    telegram: "",
+    maxStringLength: 10,
 }

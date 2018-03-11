@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import {VueMasonryPlugin} from 'vue-masonry'
 import Nav from './Nav.vue'
 import Tasks from './Tasks.vue'
 import Keyword from './Keyword.vue'
@@ -10,6 +11,7 @@ import Footer from './Footer.vue'
 
 import './style.css'
 Vue.use(VueRouter);
+Vue.use(VueMasonryPlugin);
 Vue.component('pagination', LaravelVuePagination);
 
 const routes = [
