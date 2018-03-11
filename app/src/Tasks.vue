@@ -33,7 +33,7 @@
                             &nbsp;{{ getSharePwd(task.ShareLink) }}</span>
                     </div>
                     <i :class="{'fa-angle-double-right': !task.ShowMore,
-                                        'fa-angle-double-left': task.ShowMore}"
+                                'fa-angle-double-left': task.ShowMore}"
                        class="task-card-more fa fa-1x"
                        aria-hidden="true"
                        v-on:click="showMore(index)">
@@ -264,6 +264,10 @@
         -ms-transition: all 0.5s;
         -o-transition: all 0.5s;
         transition: all 0.5s;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     .task-card-more:hover {
@@ -276,6 +280,10 @@
         float: left;
         bottom: 0;
         left: 0.2em;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     .task-card-state-more {
@@ -283,6 +291,10 @@
         float: right;
         top: 0;
         right: 0.2em;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     .finished {
