@@ -39,15 +39,19 @@ func TriggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		return
 	}
 	url := req.Form["url"][0]
+	url = strings.TrimSpace(url)
 	var title, description, authorName string
 	if len(req.Form["title"]) == 1 {
 		title = req.Form["title"][0]
+		title = strings.TrimSpace(title)
 	}
 	if len(req.Form["description"]) == 1 {
 		description = req.Form["description"][0]
+		description = strings.TrimSpace(description)
 	}
 	if len(req.Form["author_name"]) == 1 {
 		authorName = req.Form["author_name"][0]
+		authorName = strings.TrimSpace(authorName)
 	}
 	newTask(w, title, authorName, description, url)
 }
