@@ -170,4 +170,4 @@ If you don't need this "keyword" feature, emmmm, maybe you can just add a blank 
 
 Feel free to contribute by Issue and Pull Requests!
 
-Made with ♥️ by 梨子. Thanks to you.
+Made with ♥️ by 梨子. Theme by Bittersweet. Thanks to you.

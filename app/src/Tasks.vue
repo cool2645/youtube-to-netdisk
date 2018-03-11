@@ -1,53 +1,56 @@
 <template>
     <div>
         <h2>{{ title }}</h2>
-        <div class="container center">
-            <div v-masonry transition-duration="0s" item-selector=".task-card" class="row">
-                <div v-masonry-tile class="task-card col-md-3" v-for="(task, index) in data"
-                     :class="classObject(task)">
-                    <div id="brief" v-show="isLoaded && !task.ShowMore">
-                        <p>{{ task.Title }}</p>
-                        <hr v-if="task.FileName"/>
-                        <a v-if="task.FileName" :href="'/static/' + task.FileName">本地下载</a>
-                        <span v-if="task.ShareLink"> | <a :href="getShareUrl(task.ShareLink)">网盘下载</a>
+            <div v-masonry transition-duration="0s" item-selector=".task-card-wrapper" class="row">
+                <div v-masonry-tile class="task-card-wrapper col col-md-3 col-sm-6 col-xs-12" v-for="(task, index) in data">
+                    <div class="task-card" :class="classObject(task)">
+                        <div id="brief" v-show="isLoaded && !task.ShowMore">
+                            <p>{{ task.Title }}</p>
+                            <hr v-if="task.FileName"/>
+                            <a target="_blank" v-if="task.FileName" :href="'/static/' + task.FileName">本地下载</a>
+                            <span v-if="task.ShareLink"> | <a target="_blank" :href="getShareUrl(task.ShareLink)">网盘下载</a>
                             &nbsp;{{ getSharePwd(task.ShareLink) }}</span>
-                    </div>
-                    <div id="more" v-show="task.ShowMore">
-                        <div><i class="fa fa-id-card-o fa-fw"></i><span><strong>任务编号</strong>&nbsp;&nbsp;&nbsp;&nbsp;{{ task.ID }}</span>
                         </div>
-                        <div><i class="fa fa-bookmark-o fa-fw"></i><span><strong>稿件标题</strong>&nbsp;&nbsp;{{ task.Title }}</span>
-                        </div>
-                        <div><i class="fa fa-paint-brush fa-fw"></i><span><strong>投稿频道</strong>&nbsp;&nbsp;{{ task.Author }}</span>
-                        </div>
-                        <div><i class="fa fa-question-circle-o fa-fw"></i><span><strong>任务理由</strong>&nbsp;&nbsp;&nbsp;&nbsp;{{ task.Reason }}</span>
-                        </div>
-                        <div><i class="fa fa-link fa-fw"></i><span><strong>原始地址</strong>&nbsp;&nbsp;&nbsp;&nbsp;<a
-                                :href="task.URL">{{ task.URL }}</a></span>
-                        </div>
-                        <div><i class="fa fa-file-text-o fa-fw"></i><span><a href="javascript:;"
-                                                                             @click="showTaskLog(task.ID)">显示日志</a></span>
-                        </div>
-                        <hr v-if="task.FileName"/>
-                        <a v-if="task.FileName" :href="'/static/' + task.FileName">本地下载</a>
-                        <span v-if="task.ShareLink"> | <a :href="getShareUrl(task.ShareLink)">网盘下载</a>
+                        <div id="more" v-show="task.ShowMore">
+                            <div><i class="fa fa-id-card-o fa-fw"></i><span><strong>任务编号</strong>&nbsp;&nbsp;{{ task.ID }}</span>
+                            </div>
+                            <div><i class="fa fa-bookmark-o fa-fw"></i><span><strong>稿件标题</strong>&nbsp;&nbsp;{{ task.Title.trim() }}</span>
+                            </div>
+                            <div><i class="fa fa-paint-brush fa-fw"></i><span><strong>投稿频道</strong>&nbsp;&nbsp;{{ task.Author.trim() }}</span>
+                            </div>
+                            <div><i class="fa fa-question-circle-o fa-fw"></i><span><strong>任务理由</strong>&nbsp;&nbsp;{{ task.Reason }}</span>
+                            </div>
+                            <div><i class="fa fa-link fa-fw"></i><span><strong>原始地址</strong>&nbsp;&nbsp;<a
+                                    :href="task.URL">{{ task.URL.trim() }}</a></span>
+                            </div>
+                            <div><i class="fa fa-clock-o fa-fw"></i><span><strong>创建时间</strong>&nbsp;&nbsp;{{ formatDateTimeFromDatetimeString(task.CreatedAt) }}</span>
+                            </div>
+                            <div><i class="fa fa-clock-o fa-fw"></i><span><strong>更新时间</strong>&nbsp;&nbsp;{{ formatDateTimeFromDatetimeString(task.UpdatedAt) }}</span>
+                            </div>
+                            <div><i class="fa fa-file-text-o fa-fw"></i><span><a href="javascript:;"
+                                                                                 @click="showTaskLog(task.ID)">显示日志</a></span>
+                            </div>
+                            <hr v-if="task.FileName"/>
+                            <a target="_blank" v-if="task.FileName" :href="'/static/' + task.FileName">本地下载</a>
+                            <span v-if="task.ShareLink"> | <a target="_blank" :href="getShareUrl(task.ShareLink)">网盘下载</a>
                             &nbsp;{{ getSharePwd(task.ShareLink) }}</span>
-                    </div>
-                    <i :class="{'fa-angle-double-right': !task.ShowMore,
+                        </div>
+                        <i :class="{'fa-angle-double-right': !task.ShowMore,
                                 'fa-angle-double-left': task.ShowMore}"
-                       class="task-card-more fa fa-1x"
-                       aria-hidden="true"
-                       v-on:click="showMore(index)">
-                        <span v-if="!task.ShowMore">任务</span>
-                        <span v-else>隐藏</span>详情
-                    </i>
-                    <span :class="{'task-card-state': !task.ShowMore,
+                           class="task-card-more fa fa-1x"
+                           aria-hidden="true"
+                           @click.prevent="showMore(index)">
+                            <span v-if="!task.ShowMore">任务</span>
+                            <span v-else>隐藏</span>详情
+                        </i>
+                        <span :class="{'task-card-state': !task.ShowMore,
                                        'task-card-state-more': task.ShowMore}"
-                          class="task-card-state-text"
-                          aria-hidden="true">{{ task.State }}
+                              class="task-card-state-text"
+                              aria-hidden="true">{{ task.State }}
                     </span>
+                    </div>
                 </div>
             </div>
-        </div>
         <pagination :data="laravelData" :limit=2 v-on:pagination-change-page="onPageChange"></pagination>
         <h3 v-if="showLog">任务日志</h3>
         <pre v-if="showLog">
@@ -59,6 +62,7 @@
 <script>
     import config from './config'
     import urlParam from './buildUrlParam'
+    import formatDateTimeFromDatetimeString from "./datetimeUtil"
 
     export default {
         name: "tasks",
@@ -71,6 +75,11 @@
                 page: 1,
                 showLog: false,
                 log: ""
+            }
+        },
+        watch: {
+            $route() {
+                this.page = 1
             }
         },
         computed: {
@@ -110,6 +119,9 @@
             },
         },
         methods: {
+            formatDateTimeFromDatetimeString(dt) {
+                return formatDateTimeFromDatetimeString(dt)
+            },
             highlight(text) {
                 let reg = /(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|&|-)+)/g;
                 text = text.replace(reg, "<a href='$1$2'>$1$2</a><br/>");
@@ -212,14 +224,23 @@
 </script>
 
 <style scoped>
+    a {
+        word-break: break-all;
+    }
+
     th, td {
         white-space: nowrap;
+    }
+
+    .task-card-wrapper {
+        padding: 0.2em 0.2em 0.2em 0.2em;
     }
 
     .task-card {
         float: left;
         position: relative;
-        margin: 0.2em 0.2em 0.2em 0.2em;
+        width: 100%;
+        margin: 0;
         padding: 0.2em 0.2em 1.4em 0.2em;
         border-style: none;
         overflow: auto;
@@ -298,8 +319,7 @@
     }
 
     .finished {
-        background: #93ff66;
-        border-color: #06d206;
+        background: #98ebac;
     }
 
     .finished .task-card-state-text {
@@ -307,8 +327,7 @@
     }
 
     .error {
-        background: #eca281;
-        border-color: #d2535b;
+        background: #ffa5a5;
     }
 
     .error .task-card-state-text {
@@ -316,8 +335,7 @@
     }
 
     .uploading {
-        background: #ffeb7a;
-        border-color: #d2993f;
+        background: #ffdaa5;
     }
 
     .uploading .task-card-state-text {
@@ -325,8 +343,7 @@
     }
 
     .downloading {
-        background: #ffeb7a;
-        border-color: #d2993f;
+        background: #a5d7ff;
     }
 
     .downloading .task-card-state-text {
@@ -334,8 +351,7 @@
     }
 
     .rejected {
-        background: #c97474;
-        border-color: #723c3c;
+        background: #f3cdff;
     }
 
     .rejected .task-card-state-text {
