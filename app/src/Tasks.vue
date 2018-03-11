@@ -1,7 +1,7 @@
 <template>
     <div>
         <h2>{{ title }}</h2>
-            <div v-masonry transition-duration="0s" item-selector=".task-card-wrapper" class="row">
+            <div v-masonry transition-duration="0.3s" item-selector=".task-card-wrapper" class="row">
                 <div v-masonry-tile class="task-card-wrapper col col-md-3 col-sm-6 col-xs-12" v-for="(task, index) in data">
                     <div class="task-card" :class="classObject(task)">
                         <div id="brief" v-show="isLoaded && !task.ShowMore">
