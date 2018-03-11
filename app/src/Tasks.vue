@@ -73,6 +73,7 @@
                 data: [],
                 lastDataLength: 0,
                 page: 1,
+                perPage: 10,
                 showLog: false,
                 log: ""
             }
@@ -83,15 +84,6 @@
             }
         },
         computed: {
-            perPage() {
-                let w = document.body.clientWidth;
-                if (w <= 768)
-                    return 5;
-                else if (w <= 1366)
-                    return 10;
-                else
-                    return 20;
-            },
             title() {
                 if (this.$route.path !== "/reject-tasks")
                     return "已启动任务";
@@ -119,6 +111,16 @@
             },
         },
         methods: {
+            updatePerPage() {
+                let w = document.body.clientWidth;
+                if (w <= 768)
+                    this.perPage = 5;
+                else if (w <= 990)
+                    this.perPage = 16;
+                else
+                    this.perPage = 24;
+                return this.perPage;
+            },
             formatDateTimeFromDatetimeString(dt) {
                 return formatDateTimeFromDatetimeString(dt)
             },
@@ -138,7 +140,7 @@
             updateData() {
                 fetch(config.urlPrefix + '/task?' + urlParam({
                     page: this.page,
-                    perPage: this.perPage,
+                    perPage: this.updatePerPage(),
                     order: 'desc',
                     state: this.rejected ? "Rejected" : "%"
                 }))
@@ -226,6 +228,11 @@
 <style scoped>
     a {
         word-break: break-all;
+    }
+
+    .row {
+        margin-left: 0;
+        margin-right: 0;
     }
 
     th, td {
