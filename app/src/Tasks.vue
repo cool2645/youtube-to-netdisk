@@ -204,9 +204,7 @@
             },
             showMore(id) {
                 this.data[id].ShowMore = !this.data[id].ShowMore;
-                setTimeout(() => {
-                    this.$redrawVueMasonry();
-                }, 1);
+                this.$nextTick(this.$redrawVueMasonry);
             },
             classObject(task) {
                 return {
