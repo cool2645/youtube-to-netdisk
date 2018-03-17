@@ -137,7 +137,7 @@
                 let reg = /密码：.{4}/g;
                 return text.match(reg)[0];
             },
-            updateData() {
+            updateData(recur = true) {
                 fetch(config.urlPrefix + '/task?' + urlParam({
                     page: this.page,
                     perPage: this.updatePerPage(),
@@ -168,19 +168,19 @@
                                 }
                             }
                         );
-                        if (!this._isBeingDestroyed) setTimeout(() => {
+                        if (!this._isBeingDestroyed && recur) setTimeout(() => {
                             this.updateData()
                         }, 3000);
                     })
                     .catch(() => {
-                        if (!this._isBeingDestroyed) setTimeout(() => {
+                        if (!this._isBeingDestroyed && recur) setTimeout(() => {
                             this.updateData()
                         }, 3000);
                     });
             },
             onPageChange(page) {
                 this.page = page;
-                this.updateData();
+                this.updateData(false);
             },
             showTaskLog(id) {
                 fetch(config.urlPrefix + '/task/' + id)
