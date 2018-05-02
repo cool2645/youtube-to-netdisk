@@ -8,14 +8,15 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"sync"
+	"github.com/rikakomoe/ritorudemonriri/ririsdk"
+	"encoding/json"
 )
 
 var subscribedChats = make(map[int64]int64)
 var mux sync.RWMutex
 var ch = make(chan string)
-var bot *tg.BotAPI
 
-func ServeTelegram(db *gorm.DB, apiKey string) {
+func ServeTelegram(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
 	subscribers, err := model.ListSubscribers(db)
 	if err != nil {
@@ -26,28 +27,42 @@ func ServeTelegram(db *gorm.DB, apiKey string) {
 	}
 	log.Warningf("%v %s", subscribedChats, time.Now())
 	log.Infof("Started serve telegram %s", time.Now())
-	bot, err = tg.NewBotAPI(apiKey)
-	if err != nil {
-		log.Fatal(err)
-	}
+	ririsdk.Init(addr, key, true)
 	go pushMessage(ch)
-	u := tg.NewUpdate(0)
-	u.Timeout = 60
-	updates, err := bot.GetUpdatesChan(u)
-	for update := range updates {
-		if update.Message == nil {
+	messages, _ := ririsdk.GetUpdatesChan()
+	for message := range messages {
+		b, err := json.Marshal(message)
+		if err != nil {
+			log.Error(err)
 			continue
 		}
-		m := update.Message
-		if m.IsCommand() {
-			switch m.Command() {
-			case "carrier_subscribe":
-				ReplyMessage(start(db, m), m.Chat.ID)
-			case "carrier_unsubscribe":
-				ReplyMessage(stop(db, m), m.Chat.ID)
+		log.Info(string(b))
+		if message.Direction != ririsdk.IN {
+			continue
+		}
+		switch message.Messenger {
+		case ririsdk.Telegram:
+			m := message.TelegramMessage
+			if m.IsCommand() {
+				switch m.Command() {
+				case "carrier_subscribe":
+					ReplyMessage(start(db, m), m.Chat.ID)
+				case "carrier_unsubscribe":
+					ReplyMessage(stop(db, m), m.Chat.ID)
+				}
 			}
 		}
 	}
+}
+
+func replyMessage(text string, parseMode string, reqChatID int64) {
+	msg := tg.NewMessage(reqChatID, text)
+	msg.ParseMode = parseMode
+	ririsdk.PushMessage(ririsdk.Message{
+		Direction:             ririsdk.OUT,
+		Messenger:             ririsdk.Telegram,
+		TelegramMessageConfig: &msg,
+	})
 }
 
 func pushMessage(c chan string) {
@@ -56,9 +71,7 @@ func pushMessage(c chan string) {
 		m = <-c
 		mux.RLock()
 		for _, v := range subscribedChats {
-			msg := tg.NewMessage(v, m)
-			msg.ParseMode = "Markdown"
-			bot.Send(msg)
+			ReplyMessage(m, v)
 		}
 		mux.RUnlock()
 	}
@@ -87,9 +100,7 @@ func stop(db *gorm.DB, m *tg.Message) string {
 }
 
 func ReplyMessage(text string, reqChatID int64) {
-	msg := tg.NewMessage(reqChatID, text)
-	msg.ParseMode = "Markdown"
-	bot.Send(msg)
+	replyMessage(text, "Markdown", reqChatID)
 }
 
 func Broadcast(msg string) {
