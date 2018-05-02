@@ -288,7 +288,7 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l)
 		if GlobCfg.TG_ENABLE {
-			msgf := fmt.Sprintf("❗️ 下载失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			msgf := fmt.Sprintf("❗️ 下载失败：%s，[点击查看](%s%s), [重试](%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", "/api/retry/", id)
 			broadcaster.Broadcast(msgf)
 		}
 		return
@@ -306,7 +306,7 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l+l2)
 		if GlobCfg.TG_ENABLE {
-			msgf := fmt.Sprintf("❗️ 上传失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			msgf := fmt.Sprintf("❗️ 上传失败：%s，[点击查看](%s%s), [重试](%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", "/api/retry/", id)
 			broadcaster.Broadcast(msgf)
 		}
 		return
