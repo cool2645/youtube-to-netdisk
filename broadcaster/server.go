@@ -58,6 +58,7 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 func replyMessage(text string, parseMode string, reqChatID int64) {
 	msg := tg.NewMessage(reqChatID, text)
 	msg.ParseMode = parseMode
+	msg.DisableWebPagePreview = true
 	ririsdk.PushMessage(ririsdk.Message{
 		Direction:             ririsdk.OUT,
 		Messenger:             ririsdk.Telegram,
