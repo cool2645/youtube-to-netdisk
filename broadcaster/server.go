@@ -18,24 +18,24 @@ type BroadcastMessage struct {
 }
 
 const (
-	Detailed = 0
+	Detailed  = iota
 	Condensed
 )
 
-var subscribedChats = make(map[int64]int64)
+var tgSubscribedChats = make(map[int64]model.TGSubscriber)
 var mux sync.RWMutex
 var ch = make(chan BroadcastMessage)
 
 func ServeTelegram(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
-	subscribers, err := model.ListSubscribers(db)
+	tgSubscribers, err := model.ListTGSubscribers(db)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, v := range subscribers {
-		subscribedChats[v] = v
+	for _, v := range tgSubscribers {
+		tgSubscribedChats[v.ChatID] = v
 	}
-	log.Warningf("%v %s", subscribedChats, time.Now())
+	log.Warningf("%v %s", tgSubscribedChats, time.Now())
 	log.Infof("Started serve telegram %s", time.Now())
 	ririsdk.Init(addr, key, true)
 	go pushMessage(ch)
@@ -54,12 +54,13 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 		case ririsdk.Telegram:
 			m := message.TelegramMessage
 			if m.IsCommand() {
-				replyMarkdownMessage(m.Command(), m.Chat.ID)
-				replyMarkdownMessage(m.CommandArguments(), m.Chat.ID)
-				replyMarkdownMessage(m.CommandWithAt(), m.Chat.ID)
 				switch m.Command() {
 				case "carrier_subscribe":
-					replyMarkdownMessage(start(db, m), m.Chat.ID)
+					if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
+						replyMarkdownMessage(start(db, m, Condensed), m.Chat.ID)
+					} else {
+						replyMarkdownMessage(start(db, m, Detailed), m.Chat.ID)
+					}
 				case "carrier_unsubscribe":
 					replyMarkdownMessage(stop(db, m), m.Chat.ID)
 				}
@@ -84,28 +85,33 @@ func pushMessage(c chan BroadcastMessage) {
 	for {
 		m = <-c
 		mux.RLock()
-		for _, v := range subscribedChats {
-			replyMarkdownMessage(m.Message, v)
+		for _, v := range tgSubscribedChats {
+			if m.Level >= v.Level {
+				replyMarkdownMessage(m.Message, v.ChatID)
+			}
 		}
 		mux.RUnlock()
 	}
 }
 
-func start(db *gorm.DB, m *tg.Message) string {
+func start(db *gorm.DB, m *tg.Message, level int) string {
 	mux.Lock()
 	defer mux.Unlock()
-	subscribedChats[m.Chat.ID] = m.Chat.ID
-	_, err := model.SaveSubscriber(db, m.Chat.ID)
+	tgSubscribedChats[m.Chat.ID] = model.TGSubscriber{ChatID: m.Chat.ID, Level: level}
+	_, err := model.SaveTelegramSubscriber(db, m.Chat.ID, level)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return "You have set up subscription of yt2nd for this chat, pwp"
+	if level == Condensed {
+		return "You have set up condensed subscription of yt2nd for this chat, pwp"
+	}
+	return "You have set up detailed subscription of yt2nd for this chat, pwp"
 }
 
 func stop(db *gorm.DB, m *tg.Message) string {
 	mux.Lock()
 	defer mux.Unlock()
-	delete(subscribedChats, m.Chat.ID)
+	delete(tgSubscribedChats, m.Chat.ID)
 	err := model.RemoveSubscriber(db, m.Chat.ID)
 	if err != nil {
 		log.Fatal(err)

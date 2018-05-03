@@ -10,13 +10,19 @@ import (
 )
 
 type Subscriber struct {
-	ID        uint   `gorm:"AUTO_INCREMENT"`
+	ID        uint `gorm:"AUTO_INCREMENT"`
 	User      string
 	Platform  string
+	Level     int
 	CreatedAt time.Time
 }
 
-func ListSubscribers(db *gorm.DB) (chats []int64, err error) {
+type TGSubscriber struct {
+	ChatID int64
+	Level  int
+}
+
+func ListTGSubscribers(db *gorm.DB) (tgSubscribers []TGSubscriber, err error) {
 	subscribers, err := GetSubscribers(db)
 	if err != nil {
 		return
@@ -26,7 +32,7 @@ func ListSubscribers(db *gorm.DB) (chats []int64, err error) {
 		if err != nil {
 			log.Error(err)
 		}
-		chats = append(chats, chatID)
+		tgSubscribers = append(tgSubscribers, TGSubscriber{ChatID: chatID, Level: v.Level})
 	}
 	return
 }
@@ -40,16 +46,29 @@ func GetSubscribers(db *gorm.DB) (subscribers []Subscriber, err error) {
 	return
 }
 
-func SaveSubscriber(db *gorm.DB, chatID int64) (newSubscriber Subscriber, err error) {
-	var count int
-	err = db.Model(&Subscriber{}).Where("platform = ?", "Telegram").
-		Where("user = ?", strconv.FormatInt(chatID, 10)).Count(&count).Error
-	if count == 0 {
-		var subscriber Subscriber
+func SaveTelegramSubscriber(db *gorm.DB, chatID int64, level int) (newSubscriber Subscriber, err error) {
+	var subscriber Subscriber
+	err = db.Where("platform = ?", "Telegram").
+		Where("user = ?", strconv.FormatInt(chatID, 10)).First(&subscriber).Error
+	if err == nil {
+		subscriber.Level = level
+		newSubscriber, err = UpdateSubscriber(db, subscriber)
+	} else if err.Error() == "record not found" {
 		subscriber.User = strconv.FormatInt(chatID, 10)
 		subscriber.Platform = "Telegram"
+		subscriber.Level = level
 		newSubscriber, err = CreateSubscriber(db, subscriber)
 	}
+	return
+}
+
+func UpdateSubscriber(db *gorm.DB, subscriber Subscriber) (newSubscriber Subscriber, err error) {
+	db.Save(&subscriber)
+	if err != nil {
+		err = errors.Wrap(err, "UpdateSubscriber")
+		return
+	}
+	newSubscriber = subscriber
 	return
 }
 
