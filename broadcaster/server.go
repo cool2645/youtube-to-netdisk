@@ -12,9 +12,19 @@ import (
 	"encoding/json"
 )
 
+type BroadcastMessage struct {
+	Message string
+	Level   int
+}
+
+const (
+	Detailed = 0
+	Condensed
+)
+
 var subscribedChats = make(map[int64]int64)
 var mux sync.RWMutex
-var ch = make(chan string)
+var ch = make(chan BroadcastMessage)
 
 func ServeTelegram(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
@@ -44,11 +54,14 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 		case ririsdk.Telegram:
 			m := message.TelegramMessage
 			if m.IsCommand() {
+				replyMarkdownMessage(m.Command(), m.Chat.ID)
+				replyMarkdownMessage(m.CommandArguments(), m.Chat.ID)
+				replyMarkdownMessage(m.CommandWithAt(), m.Chat.ID)
 				switch m.Command() {
 				case "carrier_subscribe":
-					ReplyMessage(start(db, m), m.Chat.ID)
+					replyMarkdownMessage(start(db, m), m.Chat.ID)
 				case "carrier_unsubscribe":
-					ReplyMessage(stop(db, m), m.Chat.ID)
+					replyMarkdownMessage(stop(db, m), m.Chat.ID)
 				}
 			}
 		}
@@ -66,13 +79,13 @@ func replyMessage(text string, parseMode string, reqChatID int64) {
 	})
 }
 
-func pushMessage(c chan string) {
-	var m string
+func pushMessage(c chan BroadcastMessage) {
+	var m BroadcastMessage
 	for {
 		m = <-c
 		mux.RLock()
 		for _, v := range subscribedChats {
-			ReplyMessage(m, v)
+			replyMarkdownMessage(m.Message, v)
 		}
 		mux.RUnlock()
 	}
@@ -100,11 +113,11 @@ func stop(db *gorm.DB, m *tg.Message) string {
 	return "Your subscription of yt2nd is suspended, qaq"
 }
 
-func ReplyMessage(text string, reqChatID int64) {
+func replyMarkdownMessage(text string, reqChatID int64) {
 	replyMessage(text, "Markdown", reqChatID)
 }
 
-func Broadcast(msg string) {
+func Broadcast(msg BroadcastMessage) {
 	ch <- msg
 	return
 }
