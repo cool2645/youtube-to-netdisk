@@ -63,6 +63,12 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 					}
 				case "carrier_unsubscribe":
 					replyMarkdownMessage(stop(db, m), m.Chat.ID)
+				case "help":
+					replyMarkdownMessage(help(), m.Chat.ID)
+				case "start":
+					replyMarkdownMessage(help(), m.Chat.ID)
+				case "ping":
+					replyMarkdownMessage(ping(), m.Chat.ID)
 				}
 			}
 		}
@@ -117,6 +123,15 @@ func stop(db *gorm.DB, m *tg.Message) string {
 		log.Fatal(err)
 	}
 	return "Your subscription of yt2nd is suspended, qaq"
+}
+
+func help() string {
+	return "/carrier\\_subscribe - 订阅虹咲搬运机器人的通知（详细）\n/carrier\\_subscribe --condense - 订阅虹咲搬运机器人的通知（精简）\n" +
+		"/carrier\\_unsubscribe - 退订虹咲搬运机器人的通知\n/help - 显示此帮助\n/ping - 测试是否在线"
+}
+
+func ping() string {
+	return "Pong by yt2nd!"
 }
 
 func replyMarkdownMessage(text string, reqChatID int64) {
