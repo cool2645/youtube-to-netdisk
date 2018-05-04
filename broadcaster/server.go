@@ -2,14 +2,13 @@ package broadcaster
 
 import (
 	"time"
-	tg "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/yanzay/log"
 	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"sync"
 	"github.com/rikakomoe/ritorudemonriri/ririsdk"
-	"encoding/json"
+	tg "github.com/rikakomoe/ritorudemonriri/telegram-bot-api"
 )
 
 type BroadcastMessage struct {
@@ -25,6 +24,7 @@ const (
 var tgSubscribedChats = make(map[int64]model.TGSubscriber)
 var mux sync.RWMutex
 var ch = make(chan BroadcastMessage)
+var bot = tg.NewClientBotAPI()
 
 func ServeTelegram(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
@@ -39,36 +39,38 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 	log.Infof("Started serve telegram %s", time.Now())
 	ririsdk.Init(addr, key, true)
 	go pushMessage(ch)
-	messages, _ := ririsdk.GetUpdatesChan()
-	for message := range messages {
-		b, err := json.Marshal(message)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		log.Info(string(b))
-		if message.Direction != ririsdk.IN {
-			continue
-		}
-		switch message.Messenger {
+
+	u := tg.NewUpdate(0)
+	updates, _ := ririsdk.GetUpdatesChan(0)
+	for update := range updates {
+		switch update.Messenger {
 		case ririsdk.Telegram:
-			m := message.TelegramMessage
-			if m.IsCommand() {
-				switch m.Command() {
-				case "carrier_subscribe":
-					if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
-						replyMarkdownMessage(start(db, m, Condensed), m.Chat.ID)
-					} else {
-						replyMarkdownMessage(start(db, m, Detailed), m.Chat.ID)
+			tgUpdates, err := bot.GetUpdates(&u, update)
+			if err != nil {
+				continue
+			}
+			for _, tgUpdate := range tgUpdates {
+				if tgUpdate.Message == nil {
+					continue
+				}
+				m := tgUpdate.Message
+				if m.IsCommand() {
+					switch m.Command() {
+					case "carrier_subscribe":
+						if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
+							replyMarkdownMessage(start(db, m, Condensed), m.Chat.ID)
+						} else {
+							replyMarkdownMessage(start(db, m, Detailed), m.Chat.ID)
+						}
+					case "carrier_unsubscribe":
+						replyMarkdownMessage(stop(db, m), m.Chat.ID)
+					case "help":
+						replyMarkdownMessage(help(), m.Chat.ID)
+					case "start":
+						replyMarkdownMessage(help(), m.Chat.ID)
+					case "ping":
+						replyMarkdownMessage(ping(), m.Chat.ID)
 					}
-				case "carrier_unsubscribe":
-					replyMarkdownMessage(stop(db, m), m.Chat.ID)
-				case "help":
-					replyMarkdownMessage(help(), m.Chat.ID)
-				case "start":
-					replyMarkdownMessage(help(), m.Chat.ID)
-				case "ping":
-					replyMarkdownMessage(ping(), m.Chat.ID)
 				}
 			}
 		}
@@ -79,11 +81,7 @@ func replyMessage(text string, parseMode string, reqChatID int64) {
 	msg := tg.NewMessage(reqChatID, text)
 	msg.ParseMode = parseMode
 	msg.DisableWebPagePreview = true
-	ririsdk.PushMessage(ririsdk.Message{
-		Direction:             ririsdk.OUT,
-		Messenger:             ririsdk.Telegram,
-		TelegramMessageConfig: &msg,
-	})
+	bot.Send(msg)
 }
 
 func pushMessage(c chan BroadcastMessage) {
