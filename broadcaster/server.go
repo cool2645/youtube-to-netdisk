@@ -13,6 +13,7 @@ import (
 	cqserver "github.com/rikakomoe/ritorudemonriri/cqhttp-go-sdk/server"
 	"github.com/rikakomoe/ritorudemonriri/cqhttp-go-sdk"
 	"strconv"
+	"fmt"
 )
 
 type BroadcastMessage struct {
@@ -76,7 +77,7 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 					case "start":
 						tgReplyMessage(help(), m.Chat.ID)
 					case "ping":
-						tgReplyMessage(ping(), m.Chat.ID)
+						tgReplyMessage(ping(db), m.Chat.ID)
 					}
 				}
 			}
@@ -107,7 +108,7 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 					case "start":
 						qqReplyMessage(help(), cqUpdate)
 					case "ping":
-						qqReplyMessage(ping(), cqUpdate)
+						qqReplyMessage(ping(db), cqUpdate)
 					}
 				}
 			}
@@ -187,7 +188,7 @@ func qqStart(db *gorm.DB, info map[string]interface{}, level int) string {
 	case "discuss":
 		chatID = info["discuss_id"].(float64)
 	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 10)
+	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 64)
 	qqSubscribedChats[keyStr] = model.QQSubscriber{ChatID: chatID, Level: level, MessageType: info["message_type"].(string)}
 	_, err := model.SaveQQSubscriber(db, chatID, info["message_type"].(string), level)
 	if err != nil {
@@ -225,13 +226,13 @@ func qqStop(db *gorm.DB, info map[string]interface{}) string {
 	case "discuss":
 		chatID = info["discuss_id"].(float64)
 	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 10)
+	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 64)
 	delete(qqSubscribedChats, keyStr)
 	err := model.RemoveQQSubscriber(db, chatID, info["message_type"].(string))
 	if err != nil {
 		log.Fatal(err)
 	}
-	return "您的订阅已取消, qaq"
+	return "您的订阅已取消，qaq"
 }
 
 func tgStop(db *gorm.DB, m *tg.Message) string {
@@ -242,16 +243,25 @@ func tgStop(db *gorm.DB, m *tg.Message) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return "您的订阅已取消, qaq"
+	return "您的订阅已取消，qaq"
 }
 
 func help() string {
 	return "/carrier_subscribe - 订阅搬运机器人的通知（详细）\n/carrier_subscribe --condense - 订阅搬运机器人的通知（精简）\n" +
-		"/carrier_unsubscribe - 退订搬运机器人的通知\n/help - 显示此消息\n/ping - 测试是否在线"
+		"/carrier_unsubscribe - 退订搬运机器人的通知\n/help - 显示此帮助\n/ping - 测试是否在线"
 }
 
-func ping() string {
-	return "Pong by yt2nd!"
+func ping(db *gorm.DB) string {
+	keywords, err := model.GetKeywords(db)
+	if err != nil {
+		log.Error(err)
+		return "搬运机器人监听关键字读取失败"
+	}
+	kwds := make([]string, 0)
+	for _, keyword := range keywords {
+		kwds = append(kwds, keyword.Keyword)
+	}
+	return fmt.Sprintf("搬运机器人工作正常，监听关键字：%v", kwds)
 }
 
 func Broadcast(msg BroadcastMessage) {
