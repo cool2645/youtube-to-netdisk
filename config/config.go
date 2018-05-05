@@ -6,7 +6,7 @@ type Config struct {
 	PORT         int64    `toml:"port"`
 	ALLOW_ORIGIN []string `toml:"allow_origin"`
 	WEB_URL      string   `toml:"web_url"`
-	TG_ENABLE    bool     `toml:"tg_enable"`
+	RIRI_ENABLE  bool     `toml:"riri_enable"`
 	RIRI_ADDR    string   `toml:"riri_addr"`
 	RIRI_KEY     string   `toml:"riri_key"`
 	DB_NAME      string   `toml:"db_name"`

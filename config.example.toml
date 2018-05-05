@@ -3,7 +3,7 @@ port = 9826
 allow_origin = ["*"]
 
 web_url = "https://yt2nd.org"
-tg_enable = false
+riri_enable = false
 riri_addr = "localhost:8233"
 riri_key = ""
 

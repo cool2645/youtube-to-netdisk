@@ -39,7 +39,7 @@ func main() {
 	db.AutoMigrate(&model.Keyword{}, &model.Task{}, &model.Subscriber{})
 	model.Db = db
 
-	if GlobCfg.TG_ENABLE {
+	if GlobCfg.RIRI_ENABLE {
 		go broadcaster.ServeTelegram(model.Db, GlobCfg.RIRI_ADDR, GlobCfg.RIRI_KEY)
 	}
 
