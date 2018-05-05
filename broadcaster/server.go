@@ -194,9 +194,9 @@ func qqStart(db *gorm.DB, info map[string]interface{}, level int) string {
 		log.Fatal(err)
 	}
 	if level == Condensed {
-		return "You have set up condensed subscription of yt2nd for this chat, pwp"
+		return "您已在此会话中订阅精简通知，pwp"
 	}
-	return "You have set up detailed subscription of yt2nd for this chat, pwp"
+	return "您已在此会话中订阅详细通知，pwp"
 }
 
 func tgStart(db *gorm.DB, m *tg.Message, level int) string {
@@ -208,9 +208,9 @@ func tgStart(db *gorm.DB, m *tg.Message, level int) string {
 		log.Fatal(err)
 	}
 	if level == Condensed {
-		return "You have set up condensed subscription of yt2nd for this chat, pwp"
+		return "您已在此会话中订阅精简通知，pwp"
 	}
-	return "You have set up detailed subscription of yt2nd for this chat, pwp"
+	return "您已在此会话中订阅详细通知，pwp"
 }
 
 func qqStop(db *gorm.DB, info map[string]interface{}) string {
@@ -231,7 +231,7 @@ func qqStop(db *gorm.DB, info map[string]interface{}) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return "Your subscription of yt2nd is suspended, qaq"
+	return "您的订阅已取消, qaq"
 }
 
 func tgStop(db *gorm.DB, m *tg.Message) string {
@@ -242,12 +242,12 @@ func tgStop(db *gorm.DB, m *tg.Message) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return "Your subscription of yt2nd is suspended, qaq"
+	return "您的订阅已取消, qaq"
 }
 
 func help() string {
-	return "/carrier_subscribe - Subscribe to carrier announcement（detailed）\n/carrier_subscribe --condense - Subscribe to carrier announcement（condensed）\n" +
-		"/carrier_unsubscribe - Unsubscribe to carrier announcement\n/help - Show this message\n/ping - Test if online"
+	return "/carrier_subscribe - 订阅搬运机器人的通知（详细）\n/carrier_subscribe --condense - 订阅搬运机器人的通知（精简）\n" +
+		"/carrier_unsubscribe - 退订搬运机器人的通知\n/help - 显示此消息\n/ping - 测试是否在线"
 }
 
 func ping() string {
