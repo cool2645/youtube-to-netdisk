@@ -10,16 +10,23 @@ import (
 )
 
 type Subscriber struct {
-	ID        uint `gorm:"AUTO_INCREMENT"`
-	User      string
-	Platform  string
-	Level     int
-	CreatedAt time.Time
+	ID          uint `gorm:"AUTO_INCREMENT"`
+	User        string
+	Platform    string
+	Level       int
+	MessageType string
+	CreatedAt   time.Time
 }
 
 type TGSubscriber struct {
 	ChatID int64
 	Level  int
+}
+
+type QQSubscriber struct {
+	ChatID      float64
+	MessageType string
+	Level       int
 }
 
 func ListTGSubscribers(db *gorm.DB) (tgSubscribers []TGSubscriber, err error) {
@@ -28,11 +35,32 @@ func ListTGSubscribers(db *gorm.DB) (tgSubscribers []TGSubscriber, err error) {
 		return
 	}
 	for _, v := range subscribers {
+		if v.Platform != "Telegram" {
+			continue
+		}
 		chatID, err := strconv.ParseInt(v.User, 10, 64)
 		if err != nil {
 			log.Error(err)
 		}
 		tgSubscribers = append(tgSubscribers, TGSubscriber{ChatID: chatID, Level: v.Level})
+	}
+	return
+}
+
+func ListQQSubscribers(db *gorm.DB) (qqSubscribers []QQSubscriber, err error) {
+	subscribers, err := GetSubscribers(db)
+	if err != nil {
+		return
+	}
+	for _, v := range subscribers {
+		if v.Platform != "QQ" {
+			continue
+		}
+		chatID, err := strconv.ParseFloat(v.User, 64)
+		if err != nil {
+			log.Error(err)
+		}
+		qqSubscribers = append(qqSubscribers, QQSubscriber{ChatID: chatID, Level: v.Level, MessageType: v.MessageType})
 	}
 	return
 }
@@ -62,6 +90,24 @@ func SaveTelegramSubscriber(db *gorm.DB, chatID int64, level int) (newSubscriber
 	return
 }
 
+func SaveQQSubscriber(db *gorm.DB, chatID float64, messageType string, level int) (newSubscriber Subscriber, err error) {
+	var subscriber Subscriber
+	err = db.Where("platform = ?", "QQ").
+		Where("user = ?", strconv.FormatFloat(chatID, 'g', 'g', 10)).
+		Where("message_type = ?", messageType).First(&subscriber).Error
+	if err == nil {
+		subscriber.Level = level
+		newSubscriber, err = UpdateSubscriber(db, subscriber)
+	} else if err.Error() == "record not found" {
+		subscriber.User = strconv.FormatFloat(chatID, 'g', 'g', 10)
+		subscriber.MessageType = messageType
+		subscriber.Platform = "Telegram"
+		subscriber.Level = level
+		newSubscriber, err = CreateSubscriber(db, subscriber)
+	}
+	return
+}
+
 func UpdateSubscriber(db *gorm.DB, subscriber Subscriber) (newSubscriber Subscriber, err error) {
 	db.Save(&subscriber)
 	if err != nil {
@@ -82,12 +128,24 @@ func CreateSubscriber(db *gorm.DB, subscriber Subscriber) (newSubscriber Subscri
 	return
 }
 
-func RemoveSubscriber(db *gorm.DB, chatID int64) (err error) {
+func RemoveTGSubscriber(db *gorm.DB, chatID int64) (err error) {
 	err = db.Where("platform = ?", "Telegram").
 		Where("user = ?", strconv.FormatInt(chatID, 10)).
 		Delete(Subscriber{}).Error
 	if err != nil {
-		err = errors.Wrap(err, "RemoveSubscriber")
+		err = errors.Wrap(err, "RemoveTGSubscriber")
+		return
+	}
+	return
+}
+
+func RemoveQQSubscriber(db *gorm.DB, chatID float64, messageType string) (err error) {
+	err = db.Where("platform = ?", "QQ").
+		Where("user = ?", strconv.FormatFloat(chatID, 'g', 'g', 10)).
+		Where("message_type = ?", messageType).
+		Delete(Subscriber{}).Error
+	if err != nil {
+		err = errors.Wrap(err, "RemoveQQSubscriber")
 		return
 	}
 	return
