@@ -6,7 +6,8 @@
 
 > Content is provided to you AS IS. You may access Content for your information and personal use solely as intended through the provided functionality of the Service and as permitted under these Terms of Service. You shall not download any Content unless you see a “download” or similar link displayed by YouTube on the Service for that Content. You shall not copy, reproduce, distribute, transmit, broadcast, display, sell, license, or otherwise exploit any Content for any other purposes without the prior written consent of YouTube or the respective licensors of the Content. YouTube and its licensors reserve all rights not expressly granted in and to the Service and the Content.
 
-**Make sure you have granted permission from the channel owner before you start carrying videos!!**
+**Use at your own risk!**
+**You should make sure you have granted permission from the channel owner before you start carrying videos.**
 
 ## Thanks to
 
@@ -27,8 +28,7 @@ Before you start working with this program, read the following introduction care
 
 Refer to these APIs in case you need.
 
-+ Method: POST
-+ Address: /api/trigger
+**POST: /api/trigger**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Trigger a new carrier task
 
@@ -39,25 +39,21 @@ Refer to these APIs in case you need.
     | author_name | The author's name of the youtube video. |
     | description | The description of the youtube video. |
 
-+ Method: DELETE
-+ Address: /api/kill/{id}
+**DELETE: /api/kill/{id}**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Kill a running task.
 + Args: {id}: ID of the task.
 
-+ Method: GET/POST
-+ Address: /api/retry/{id}
+**GET/POST: /api/retry/{id}**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Retry a task.
 + Args: {id}: ID of the task.
 
-+ Method: GET
-+ Address: /api/running
+**GET: /api/running**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Get all running tasks.
 
-+ Method: GET
-+ Address: /api/task
+**GET: /api/task**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Get tasks (Log is not shown).
 
@@ -68,19 +64,16 @@ Refer to these APIs in case you need.
     | page | Page num. |
     | perPage | Count of entries in each page. |
 
-+ Method: GET
-+ Address: /api/task/{id}
+**GET: /api/task/{id}**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Get a specific task.
 + Args: {id}: ID of the task.
 
-+ Method: GET
-+ Address: /api/keyword
+**GET: /api/keyword**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Show all keywords.
 
-+ Method: POST
-+ Address: /api/keyword
+**POST: /api/keyword**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Add a keyword.
 
@@ -88,8 +81,7 @@ Refer to these APIs in case you need.
     | --- | --- |
     | keyword | Keyword |
 
-+ Method: DELETE
-+ Address: /api/keyword
+**DELETE: /api/keyword**
 + Content-Type: application/x-www-form-urlencoded
 + Description: Delete one keyword.
 
@@ -142,7 +134,13 @@ Fill in **tg_key** with your telegram bot key, and then this program will push n
 Listening commands:
 
 * **/carrier_subscribe** Set up subscription for this chat.
+* **/carrier_subscribe --condense** Set up condensed subscription for this chat.
 * **/carrier_unsubscribe** Suspend subscription for this chat.
+
+### qwqq.pw
+
+The program use [qwqq.pw](https://qwqq.pw) as its url shorten service, since the video
+name are usually quite long to share.
 
 ### Build Front-End
 
