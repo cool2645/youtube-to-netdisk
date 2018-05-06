@@ -89,6 +89,7 @@ func stop(db *gorm.DB, m *tg.Message) string {
 func ReplyMessage(text string, reqChatID int64) {
 	msg := tg.NewMessage(reqChatID, text)
 	msg.ParseMode = "Markdown"
+	msg.DisableWebPagePreview = true
 	bot.Send(msg)
 }
 
