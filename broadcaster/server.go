@@ -43,6 +43,15 @@ func ServeTelegram(db *gorm.DB, addr string, key string) {
 		tgSubscribedChats[v.ChatID] = v
 	}
 	log.Warningf("%v %s", tgSubscribedChats, time.Now())
+	qqSubscribers, err := model.ListQQSubscribers(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, v := range qqSubscribers {
+		keyStr := v.MessageType + strconv.FormatFloat(v.ChatID, 'g', 'g', 64)
+		qqSubscribedChats[keyStr] = v
+	}
+	log.Warningf("%v %s", qqSubscribedChats, time.Now())
 	log.Infof("Started serve telegram %s", time.Now())
 	ririsdk.Init(addr, key, true)
 	go pushMessage(ch)
