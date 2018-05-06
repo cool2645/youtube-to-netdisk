@@ -4,7 +4,7 @@ allow_origin = ["*"]
 
 web_url = "https://yt2nd.org"
 tg_enable = false
-tg_key = "123456789:AAHEUURbcdefghijklmn123opqrstuvwxyz"
+tg_key = ""
 
 db_name = "yt2nd"
 db_user = "root"

@@ -14,6 +14,7 @@ import (
 	. "github.com/cool2645/youtube-to-netdisk/config"
 	"regexp"
 	"io/ioutil"
+	"net/url"
 	"github.com/pkg/errors"
 	"github.com/cool2645/youtube-to-netdisk/broadcaster"
 )
@@ -80,14 +81,14 @@ func newTask(w http.ResponseWriter, title string, authorName string, description
 		task, err = model.NewTask(model.Db, title, authorName, description, url, "Rejected", reason)
 		if GlobCfg.TG_ENABLE {
 			msgf := fmt.Sprintf("⛔️ 已拒绝任务：%s，%s，原因：%s，[点击查看](%s%s)", title, authorName, reason, GlobCfg.WEB_URL, "/reject-tasks")
-			broadcaster.Broadcast(msgf)
+			broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
 		}
 	} else {
 		reason := fmt.Sprintf("Keywords %v hit", hit)
 		task, err = model.NewTask(model.Db, title, authorName, description, url, "Downloading", reason)
 		if GlobCfg.TG_ENABLE {
 			msgf := fmt.Sprintf("🔶 已创建任务：%s，%s，原因：%s，[点击查看](%s%s)", title, authorName, reason, GlobCfg.WEB_URL, "/tasks")
-			broadcaster.Broadcast(msgf)
+			broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
 		}
 	}
 	if err != nil {
@@ -288,15 +289,22 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l)
 		if GlobCfg.TG_ENABLE {
-			msgf := fmt.Sprintf("❗️ 下载失败：%s，[点击查看](%s%s), [重试](%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", "/api/retry/", id)
-			broadcaster.Broadcast(msgf)
+			msgf := fmt.Sprintf("❗️ 下载失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
 		}
 		return
 	}
 	model.UpdateTaskStatus(model.Db, id, "Uploading", fn, "", l)
 	if GlobCfg.TG_ENABLE {
 		msgf := fmt.Sprintf("✅ 下载完成：%s，[点击查看](%s%s)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks")
-		broadcaster.Broadcast(msgf)
+		broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
+		urls, err := shortenURL(GlobCfg.WEB_URL + "/static/" + runningCarriers[id].task.FileName)
+		if err != nil {
+			urls = GlobCfg.WEB_URL + "/static/" + runningCarriers[id].task.FileName
+		}
+		msgcf := fmt.Sprintf("稿件标题  %s\n投稿频道  %s\n原始地址  %s\n本地下载  %s",
+			runningCarriers[id].task.Title, runningCarriers[id].task.Author, runningCarriers[id].task.URL, urls)
+		broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgcf, Level:broadcaster.Condensed})
 	}
 	state = runCmd(id, kill, GlobCfg.TEMP_PATH, GlobCfg.PYTHON_CMD, "-u", "../syncBaidu.py", fn, ndFolder)
 	l2, err := readLog(id)
@@ -306,8 +314,8 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if state != "Finished" {
 		model.UpdateTaskStatus(model.Db, id, state, fn, "", l+l2)
 		if GlobCfg.TG_ENABLE {
-			msgf := fmt.Sprintf("❗️ 上传失败：%s，[点击查看](%s%s), [重试](%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", "/api/retry/", id)
-			broadcaster.Broadcast(msgf)
+			msgf := fmt.Sprintf("❗️ 上传失败：%s，[点击查看](%s%s), [重试](%s%s%d)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks", GlobCfg.WEB_URL, "/api/retry/", id)
+			broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
 		}
 		return
 	}
@@ -321,7 +329,31 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	model.UpdateTaskStatus(model.Db, id, state, fn, shareLink, l+l2)
 	if GlobCfg.TG_ENABLE {
 		msgf := fmt.Sprintf("✅ 上传完成：%s，[点击查看](%s%s)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks")
-		broadcaster.Broadcast(msgf)
+		broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
+		msgcf := fmt.Sprintf("稿件标题  %s\n网盘下载  %s",
+			runningCarriers[id].task.Title, shareLink)
+		broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgcf, Level:broadcaster.Condensed})
+	}
+	return
+}
+
+func shortenURL(rawURL string) (shortenURL string, err error) {
+	u, _ := url.Parse("https://qwqq.pw/api.php")
+	q := u.Query()
+	q.Set("url", rawURL)
+	q.Set("format", "simple")
+	u.RawQuery = q.Encode()
+	res, err := http.Get(u.String());
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	b, err := ioutil.ReadAll(res.Body)
+	shortenURL = string(b)
+	res.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
 	return
 }
