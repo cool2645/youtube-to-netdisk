@@ -125,11 +125,13 @@ The web interface will be listening at **port**.
 
 Videos will be stored at folder `static` (Perhaps should be created manually?)
 
-### Telegram Notification
+### RiRi Notification
 
-Turn on the **tg_enable** flag in config will enable this feature.
+This branch uses [ritorudemonriri](https://github.com/rikakomoe/ritorudemonriri) as notification driver.
 
-Fill in **tg_key** with your telegram bot key, and then this program will push notifications via your telegram bot.
+Turn on the **riri_enable** flag in config will enable this feature.
+
+Fill in **riri_key** with your channel key, and **riri_addr** with your ritorudemonriri address.
 
 Listening commands:
 

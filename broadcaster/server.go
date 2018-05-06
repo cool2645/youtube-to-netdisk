@@ -33,7 +33,7 @@ var qqMux sync.RWMutex
 var ch = make(chan BroadcastMessage)
 var bot = tg.NewClientBotAPI()
 
-func ServeTelegram(db *gorm.DB, addr string, key string) {
+func ServeRiri(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
 	tgSubscribers, err := model.ListTGSubscribers(db)
 	if err != nil {

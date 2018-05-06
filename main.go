@@ -40,7 +40,7 @@ func main() {
 	model.Db = db
 
 	if GlobCfg.RIRI_ENABLE {
-		go broadcaster.ServeTelegram(model.Db, GlobCfg.RIRI_ADDR, GlobCfg.RIRI_KEY)
+		go broadcaster.ServeRiri(model.Db, GlobCfg.RIRI_ADDR, GlobCfg.RIRI_KEY)
 	}
 
 	mux.GET("/api", handler.Pong)
