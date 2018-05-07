@@ -48,7 +48,7 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 		log.Fatal(err)
 	}
 	for _, v := range qqSubscribers {
-		keyStr := v.MessageType + strconv.FormatFloat(v.ChatID, 'g', 'g', 64)
+		keyStr := v.MessageType + strconv.FormatFloat(v.ChatID, 'f', -1, 64)
 		qqSubscribedChats[keyStr] = v
 	}
 	log.Warningf("%v %s", qqSubscribedChats, time.Now())
@@ -197,7 +197,7 @@ func qqStart(db *gorm.DB, info map[string]interface{}, level int) string {
 	case "discuss":
 		chatID = info["discuss_id"].(float64)
 	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 64)
+	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'f', -1, 64)
 	qqSubscribedChats[keyStr] = model.QQSubscriber{ChatID: chatID, Level: level, MessageType: info["message_type"].(string)}
 	_, err := model.SaveQQSubscriber(db, chatID, info["message_type"].(string), level)
 	if err != nil {
@@ -235,7 +235,7 @@ func qqStop(db *gorm.DB, info map[string]interface{}) string {
 	case "discuss":
 		chatID = info["discuss_id"].(float64)
 	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'g', 'g', 64)
+	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'f', -1, 64)
 	delete(qqSubscribedChats, keyStr)
 	err := model.RemoveQQSubscriber(db, chatID, info["message_type"].(string))
 	if err != nil {

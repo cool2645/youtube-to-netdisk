@@ -93,13 +93,13 @@ func SaveTelegramSubscriber(db *gorm.DB, chatID int64, level int) (newSubscriber
 func SaveQQSubscriber(db *gorm.DB, chatID float64, messageType string, level int) (newSubscriber Subscriber, err error) {
 	var subscriber Subscriber
 	err = db.Where("platform = ?", "QQ").
-		Where("user = ?", strconv.FormatFloat(chatID, 'g', 'g', 64)).
+		Where("user = ?", strconv.FormatFloat(chatID, 'f', -1, 64)).
 		Where("message_type = ?", messageType).First(&subscriber).Error
 	if err == nil {
 		subscriber.Level = level
 		newSubscriber, err = UpdateSubscriber(db, subscriber)
 	} else if err.Error() == "record not found" {
-		subscriber.User = strconv.FormatFloat(chatID, 'g', 'g', 64)
+		subscriber.User = strconv.FormatFloat(chatID, 'f', -1, 64)
 		subscriber.MessageType = messageType
 		subscriber.Platform = "QQ"
 		subscriber.Level = level
@@ -141,7 +141,7 @@ func RemoveTGSubscriber(db *gorm.DB, chatID int64) (err error) {
 
 func RemoveQQSubscriber(db *gorm.DB, chatID float64, messageType string) (err error) {
 	err = db.Where("platform = ?", "QQ").
-		Where("user = ?", strconv.FormatFloat(chatID, 'g', 'g', 64)).
+		Where("user = ?", strconv.FormatFloat(chatID, 'f', -1, 64)).
 		Where("message_type = ?", messageType).
 		Delete(Subscriber{}).Error
 	if err != nil {
