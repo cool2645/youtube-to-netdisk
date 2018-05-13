@@ -298,9 +298,9 @@ func runCarrier(id int64, kill chan bool, url string, ndFolder string) {
 	if GlobCfg.TG_ENABLE {
 		msgf := fmt.Sprintf("✅ 下载完成：%s，[点击查看](%s%s)", runningCarriers[id].task.Title, GlobCfg.WEB_URL, "/tasks")
 		broadcaster.Broadcast(broadcaster.BroadcastMessage{Message:msgf, Level:broadcaster.Detailed})
-		urls, err := shortenURL(GlobCfg.WEB_URL + "/static/" + runningCarriers[id].task.FileName)
+		urls, err := shortenURL(GlobCfg.WEB_URL + "/static/" + fn)
 		if err != nil {
-			urls = GlobCfg.WEB_URL + "/static/" + runningCarriers[id].task.FileName
+			urls = GlobCfg.WEB_URL + "/static/" + fn
 		}
 		msgcf := fmt.Sprintf("稿件标题  %s\n投稿频道  %s\n原始地址  %s\n本地下载  %s",
 			runningCarriers[id].task.Title, runningCarriers[id].task.Author, runningCarriers[id].task.URL, urls)
