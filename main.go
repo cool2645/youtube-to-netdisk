@@ -2,18 +2,18 @@ package main
 
 import (
 	"github.com/BurntSushi/toml"
-	"net/http"
-	"github.com/urfave/negroni"
-	"strconv"
-	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
+	"github.com/cool2645/youtube-to-netdisk/broadcaster"
+	. "github.com/cool2645/youtube-to-netdisk/config"
+	"github.com/cool2645/youtube-to-netdisk/handler"
+	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/julienschmidt/httprouter"
+	"github.com/rs/cors"
+	"github.com/urfave/negroni"
 	"github.com/yanzay/log"
-	"github.com/cool2645/youtube-to-netdisk/model"
-	"github.com/cool2645/youtube-to-netdisk/handler"
-	. "github.com/cool2645/youtube-to-netdisk/config"
-	"github.com/cool2645/youtube-to-netdisk/broadcaster"
+	"net/http"
+	"strconv"
 )
 
 var mux = httprouter.New()

@@ -1,19 +1,18 @@
 package broadcaster
 
 import (
-	"time"
-	"github.com/yanzay/log"
+	"fmt"
 	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"sync"
+	qq "github.com/rikakomoe/ritorudemonriri/qq-bot-api"
+	"github.com/catsworld/qq-bot-api/cqcode"
 	"github.com/rikakomoe/ritorudemonriri/ririsdk"
 	tg "github.com/rikakomoe/ritorudemonriri/telegram-bot-api"
-	"github.com/juzi5201314/cqhttp-go-sdk/cqcode"
-	cqserver "github.com/rikakomoe/ritorudemonriri/cqhttp-go-sdk/server"
-	"github.com/rikakomoe/ritorudemonriri/cqhttp-go-sdk"
+	"github.com/yanzay/log"
 	"strconv"
-	"fmt"
+	"sync"
+	"time"
 )
 
 type BroadcastMessage struct {
@@ -22,7 +21,7 @@ type BroadcastMessage struct {
 }
 
 const (
-	Detailed  = iota
+	Detailed = iota
 	Condensed
 )
 
@@ -31,7 +30,8 @@ var qqSubscribedChats = make(map[string]model.QQSubscriber)
 var tgMux sync.RWMutex
 var qqMux sync.RWMutex
 var ch = make(chan BroadcastMessage)
-var bot = tg.NewClientBotAPI()
+var tgBot, _ = tg.NewBotAPI()
+var qqBot, _ = qq.NewBotAPI()
 
 func ServeRiri(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
@@ -48,21 +48,21 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 		log.Fatal(err)
 	}
 	for _, v := range qqSubscribers {
-		keyStr := v.MessageType + strconv.FormatFloat(v.ChatID, 'f', -1, 64)
+		keyStr := v.MessageType + strconv.FormatInt(v.ChatID, 10)
 		qqSubscribedChats[keyStr] = v
 	}
 	log.Warningf("%v %s", qqSubscribedChats, time.Now())
 	log.Infof("Started serve telegram %s", time.Now())
 	ririsdk.Init(addr, key, true)
 	go pushMessage(ch)
-	server := cqserver.ClientListenServer()
 	cqcode.StrictCommand = true
 	u := tg.NewUpdate(0)
+	u2 := qq.NewWebhook("")
 	updates, _ := ririsdk.GetUpdatesChan(0)
 	for update := range updates {
 		switch update.Messenger {
 		case ririsdk.Telegram:
-			tgUpdates, err := bot.GetUpdates(&u, update)
+			tgUpdates, err := tgBot.GetUpdates(&u, update)
 			if err != nil {
 				continue
 			}
@@ -91,13 +91,13 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 				}
 			}
 		case ririsdk.CQHttp:
-			cqUpdate, err := server.GetUpdate(update)
+			cqUpdate, err := qqBot.GetUpdate(u2, update)
 			if err != nil {
 				continue
 			}
-			switch cqUpdate["post_type"] {
+			switch cqUpdate.PostType {
 			case "message":
-				m, err := cqcode.ParseMessage(cqUpdate["message"])
+				m := cqUpdate.Message
 				if err != nil {
 					continue
 				}
@@ -106,18 +106,18 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 					switch cmd {
 					case "carrier_subscribe":
 						if len(args) > 0 && (args[0] == "--condense" || args[0] == "—condense") {
-							qqReplyMessage(qqStart(db, cqUpdate, Condensed), cqUpdate)
+							qqSendMessage(qqStart(db, m, Condensed), m.Chat.ID, m.Chat.Type)
 						} else {
-							qqReplyMessage(qqStart(db, cqUpdate, Detailed), cqUpdate)
+							qqSendMessage(qqStart(db, m, Detailed), m.Chat.ID, m.Chat.Type)
 						}
 					case "carrier_unsubscribe":
-						qqReplyMessage(qqStop(db, cqUpdate), cqUpdate)
+						qqSendMessage(qqStop(db, m), m.Chat.ID, m.Chat.Type)
 					case "help":
-						qqReplyMessage(help(), cqUpdate)
+						qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
 					case "start":
-						qqReplyMessage(help(), cqUpdate)
+						qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
 					case "ping":
-						qqReplyMessage(ping(db), cqUpdate)
+						qqSendMessage(ping(db), m.Chat.ID, m.Chat.Type)
 					}
 				}
 			}
@@ -129,39 +129,17 @@ func tgReplyMarkdownMessage(text string, reqChatID int64) {
 	msg := tg.NewMessage(reqChatID, text)
 	msg.ParseMode = "Markdown"
 	msg.DisableWebPagePreview = true
-	bot.Send(msg)
+	tgBot.Send(msg)
 }
 
 func tgReplyMessage(text string, reqChatID int64) {
 	msg := tg.NewMessage(reqChatID, text)
 	msg.DisableWebPagePreview = true
-	bot.Send(msg)
+	tgBot.Send(msg)
 }
 
-func qqReplyMessage(text string, info map[string]interface{}) {
-	api := cqhttp_go_sdk.API{}
-	switch info["message_type"] {
-	case "group":
-		api.SendGroupMsg(info["group_id"].(float64), text, false)
-	case "private":
-		api.SendPrivateMsg(info["user_id"].(float64), text, false)
-	case "discuss":
-		api.SendDiscussMsg(info["discuss_id"].(float64), text, false)
-		break
-	}
-}
-
-func qqSendMessage(text string, messageType string, reqChatID float64) {
-	api := cqhttp_go_sdk.API{}
-	switch messageType {
-	case "group":
-		api.SendGroupMsg(reqChatID, text, false)
-	case "private":
-		api.SendPrivateMsg(reqChatID, text, false)
-	case "discuss":
-		api.SendDiscussMsg(reqChatID, text, false)
-		break
-	}
+func qqSendMessage(text string, reqChatID int64, reqChatType string) {
+	qqBot.SendMessage(reqChatID, reqChatType, text)
 }
 
 func pushMessage(c chan BroadcastMessage) {
@@ -178,28 +156,19 @@ func pushMessage(c chan BroadcastMessage) {
 		qqMux.RLock()
 		for _, v := range qqSubscribedChats {
 			if m.Level >= v.Level {
-				qqSendMessage(m.Message, v.MessageType, v.ChatID)
+				qqSendMessage(m.Message, v.ChatID, v.MessageType)
 			}
 		}
 		qqMux.RUnlock()
 	}
 }
 
-func qqStart(db *gorm.DB, info map[string]interface{}, level int) string {
+func qqStart(db *gorm.DB, m *qq.Message, level int) string {
 	qqMux.Lock()
 	defer qqMux.Unlock()
-	var chatID float64
-	switch info["message_type"] {
-	case "group":
-		chatID = info["group_id"].(float64)
-	case "private":
-		chatID = info["user_id"].(float64)
-	case "discuss":
-		chatID = info["discuss_id"].(float64)
-	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'f', -1, 64)
-	qqSubscribedChats[keyStr] = model.QQSubscriber{ChatID: chatID, Level: level, MessageType: info["message_type"].(string)}
-	_, err := model.SaveQQSubscriber(db, chatID, info["message_type"].(string), level)
+	keyStr := m.Chat.Type + strconv.FormatInt(m.Chat.ID, 10)
+	qqSubscribedChats[keyStr] = model.QQSubscriber{ChatID: m.Chat.ID, Level: level, MessageType: m.Chat.Type}
+	_, err := model.SaveQQSubscriber(db, m.Chat.ID, m.Chat.Type, level)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -223,21 +192,12 @@ func tgStart(db *gorm.DB, m *tg.Message, level int) string {
 	return "您已在此会话中订阅详细通知，pwp"
 }
 
-func qqStop(db *gorm.DB, info map[string]interface{}) string {
+func qqStop(db *gorm.DB, m *qq.Message) string {
 	qqMux.Lock()
 	defer qqMux.Unlock()
-	var chatID float64
-	switch info["message_type"] {
-	case "group":
-		chatID = info["group_id"].(float64)
-	case "private":
-		chatID = info["user_id"].(float64)
-	case "discuss":
-		chatID = info["discuss_id"].(float64)
-	}
-	keyStr := info["message_type"].(string) + strconv.FormatFloat(chatID, 'f', -1, 64)
+	keyStr := m.Chat.Type + strconv.FormatInt(m.Chat.ID, 64)
 	delete(qqSubscribedChats, keyStr)
-	err := model.RemoveQQSubscriber(db, chatID, info["message_type"].(string))
+	err := model.RemoveQQSubscriber(db, m.Chat.ID, m.Chat.Type)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,10 +1,10 @@
 package model
 
 import (
-	"time"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type Keyword struct {
@@ -12,7 +12,6 @@ type Keyword struct {
 	Keyword   string
 	CreatedAt time.Time
 }
-
 
 func GetKeywords(db *gorm.DB) (keywords []Keyword, err error) {
 	err = db.Find(&keywords).Error

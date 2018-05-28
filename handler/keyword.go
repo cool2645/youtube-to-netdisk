@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"net/http"
+	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/julienschmidt/httprouter"
 	"github.com/yanzay/log"
-	"github.com/cool2645/youtube-to-netdisk/model"
+	"net/http"
 )
 
 func GetKeywords(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {

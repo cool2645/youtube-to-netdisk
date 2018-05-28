@@ -1,14 +1,14 @@
 package model
 
 import (
-	"time"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type Task struct {
-	ID          int64  `gorm:"AUTO_INCREMENT"`
+	ID          int64 `gorm:"AUTO_INCREMENT"`
 	Title       string
 	Description string
 	Author      string
