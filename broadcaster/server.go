@@ -2,11 +2,12 @@ package broadcaster
 
 import (
 	"fmt"
+	"github.com/catsworld/qq-bot-api/cqcode"
 	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/rikakomoe/ritorudemonriri/bot"
 	qq "github.com/rikakomoe/ritorudemonriri/qq-bot-api"
-	"github.com/catsworld/qq-bot-api/cqcode"
 	"github.com/rikakomoe/ritorudemonriri/ririsdk"
 	tg "github.com/rikakomoe/ritorudemonriri/telegram-bot-api"
 	"github.com/yanzay/log"
@@ -30,8 +31,7 @@ var qqSubscribedChats = make(map[string]model.QQSubscriber)
 var tgMux sync.RWMutex
 var qqMux sync.RWMutex
 var ch = make(chan BroadcastMessage)
-var tgBot, _ = tg.NewBotAPI()
-var qqBot, _ = qq.NewBotAPI()
+var bot botapi.Bot
 
 func ServeRiri(db *gorm.DB, addr string, key string) {
 	log.Infof("Reading subscribed chats from database %s", time.Now())
@@ -54,71 +54,52 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 	log.Warningf("%v %s", qqSubscribedChats, time.Now())
 	log.Infof("Started serve telegram %s", time.Now())
 	ririsdk.Init(addr, key, true)
+	bot = botapi.NewBot()
 	go pushMessage(ch)
 	cqcode.StrictCommand = true
-	u := tg.NewUpdate(0)
-	u2 := qq.NewWebhook("")
-	updates, _ := ririsdk.GetUpdatesChan(0)
+	updates := bot.GetUpdatesChan(botapi.UpdateConfig{})
 	for update := range updates {
 		switch update.Messenger {
 		case ririsdk.Telegram:
-			tgUpdates, err := tgBot.GetUpdates(&u, update)
-			if err != nil {
-				continue
-			}
-			for _, tgUpdate := range tgUpdates {
-				if tgUpdate.Message == nil {
-					continue
-				}
-				m := tgUpdate.Message
-				if m.IsCommand() {
-					switch m.Command() {
-					case "carrier_subscribe":
-						if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
-							tgReplyMessage(tgStart(db, m, Condensed), m.Chat.ID)
-						} else {
-							tgReplyMessage(tgStart(db, m, Detailed), m.Chat.ID)
-						}
-					case "carrier_unsubscribe":
-						tgReplyMessage(tgStop(db, m), m.Chat.ID)
-					case "help":
-						tgReplyMessage(help(), m.Chat.ID)
-					case "start":
-						tgReplyMessage(help(), m.Chat.ID)
-					case "ping":
-						tgReplyMessage(ping(db), m.Chat.ID)
+			if update.IsCommand() {
+				m := update.TGUpdate.Message
+				cmd, _ := update.Command()
+				switch cmd {
+				case "carrier_subscribe":
+					if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
+						tgReplyMessage(tgStart(db, m, Condensed), m.Chat.ID)
+					} else {
+						tgReplyMessage(tgStart(db, m, Detailed), m.Chat.ID)
 					}
+				case "carrier_unsubscribe":
+					tgReplyMessage(tgStop(db, m), m.Chat.ID)
+				case "help":
+					tgReplyMessage(help(), m.Chat.ID)
+				case "start":
+					tgReplyMessage(help(), m.Chat.ID)
+				case "ping":
+					tgReplyMessage(ping(db), m.Chat.ID)
 				}
 			}
 		case ririsdk.CQHttp:
-			cqUpdate, err := qqBot.GetUpdate(u2, update)
-			if err != nil {
-				continue
-			}
-			switch cqUpdate.PostType {
-			case "message":
-				m := cqUpdate.Message
-				if err != nil {
-					continue
-				}
-				if m.IsCommand() {
-					cmd, args := m.Command()
-					switch cmd {
-					case "carrier_subscribe":
-						if len(args) > 0 && (args[0] == "--condense" || args[0] == "—condense") {
-							qqSendMessage(qqStart(db, m, Condensed), m.Chat.ID, m.Chat.Type)
-						} else {
-							qqSendMessage(qqStart(db, m, Detailed), m.Chat.ID, m.Chat.Type)
-						}
-					case "carrier_unsubscribe":
-						qqSendMessage(qqStop(db, m), m.Chat.ID, m.Chat.Type)
-					case "help":
-						qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
-					case "start":
-						qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
-					case "ping":
-						qqSendMessage(ping(db), m.Chat.ID, m.Chat.Type)
+			if update.IsCommand() {
+				m := update.QQUpdate.Message
+				cmd, args := update.Command()
+				switch cmd {
+				case "carrier_subscribe":
+					if len(args) > 0 && (args[0] == "--condense" || args[0] == "—condense") {
+						qqSendMessage(qqStart(db, m, Condensed), m.Chat.ID, m.Chat.Type)
+					} else {
+						qqSendMessage(qqStart(db, m, Detailed), m.Chat.ID, m.Chat.Type)
 					}
+				case "carrier_unsubscribe":
+					qqSendMessage(qqStop(db, m), m.Chat.ID, m.Chat.Type)
+				case "help":
+					qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
+				case "start":
+					qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
+				case "ping":
+					qqSendMessage(ping(db), m.Chat.ID, m.Chat.Type)
 				}
 			}
 		}
@@ -126,20 +107,21 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 }
 
 func tgReplyMarkdownMessage(text string, reqChatID int64) {
-	msg := tg.NewMessage(reqChatID, text)
-	msg.ParseMode = "Markdown"
-	msg.DisableWebPagePreview = true
-	tgBot.Send(msg)
+	sc := botapi.NewTGSendConfig(reqChatID)
+	sc.ParseMode = botapi.FormatMarkdown
+	sc.DisableWebPreview = true
+	bot.Send(sc, text)
 }
 
 func tgReplyMessage(text string, reqChatID int64) {
-	msg := tg.NewMessage(reqChatID, text)
-	msg.DisableWebPagePreview = true
-	tgBot.Send(msg)
+	sc := botapi.NewTGSendConfig(reqChatID)
+	sc.DisableWebPreview = true
+	bot.Send(sc, text)
 }
 
 func qqSendMessage(text string, reqChatID int64, reqChatType string) {
-	qqBot.SendMessage(reqChatID, reqChatType, text)
+	sc := botapi.NewQQSendConfig(reqChatID, reqChatType)
+	bot.Send(sc, text)
 }
 
 func pushMessage(c chan BroadcastMessage) {
