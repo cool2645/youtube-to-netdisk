@@ -177,7 +177,7 @@ func tgStart(db *gorm.DB, m *tg.Message, level int) string {
 func qqStop(db *gorm.DB, m *qq.Message) string {
 	qqMux.Lock()
 	defer qqMux.Unlock()
-	keyStr := m.Chat.Type + strconv.FormatInt(m.Chat.ID, 64)
+	keyStr := m.Chat.Type + strconv.FormatInt(m.Chat.ID, 10)
 	delete(qqSubscribedChats, keyStr)
 	err := model.RemoveQQSubscriber(db, m.Chat.ID, m.Chat.Type)
 	if err != nil {
