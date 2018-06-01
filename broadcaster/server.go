@@ -105,9 +105,12 @@ func dispatchCmd(db *gorm.DB, cmd string, update botapi.Update, args []string) {
 		return
 	}
 	text := c(db, update, args)
-	mc := botapi.MessageConfig{}
-	mc.DisableWebPreview = true
-	update.Reply(mc, text)
+	switch update.Messenger {
+	case ririsdk.Telegram:
+		tgReplyMarkdownMessage(text, update.GetChatConfig().ChatID)
+	case ririsdk.CQHttp:
+		qqSendMessage(text, update.GetChatConfig().ChatID, update.GetChatConfig().ChatType)
+	}
 }
 
 func tgReplyMarkdownMessage(text string, reqChatID int64) {
@@ -196,6 +199,10 @@ func tgStop(db *gorm.DB, m *tg.Message) string {
 }
 
 func help(db *gorm.DB, update botapi.Update, args []string) string {
+	if update.Messenger == ririsdk.Telegram {
+		return "虹咲搬运机器人：\n/carrier\\_subscribe#yt2nd - 订阅搬运机器人的通知（详细）\n/carrier\\_subscribe#yt2nd --condense - 订阅搬运机器人的通知（精简）\n" +
+			"/carrier\\_unsubscribe#yt2nd - 退订搬运机器人的通知\n_#号及后面的部分可以省略_"
+	}
 	return "虹咲搬运机器人：\n/carrier_subscribe#yt2nd - 订阅搬运机器人的通知（详细）\n/carrier_subscribe#yt2nd --condense - 订阅搬运机器人的通知（精简）\n" +
 		"/carrier_unsubscribe#yt2nd - 退订搬运机器人的通知\n（#号及后面的部分可以省略）"
 }
