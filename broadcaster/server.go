@@ -59,62 +59,60 @@ func ServeRiri(db *gorm.DB, addr string, key string) {
 	cqcode.StrictCommand = true
 	updates := bot.GetUpdatesChan(botapi.UpdateConfig{})
 	for update := range updates {
-		switch update.Messenger {
-		case ririsdk.Telegram:
-			if update.IsCommand() {
-				m := update.TGUpdate.Message
-				cmd, _ := update.Command()
-				switch cmd {
-				case "carrier_subscribe":
-					if m.CommandArguments() == "--condense" || m.CommandArguments() == "—condense" {
-						tgReplyMessage(tgStart(db, m, Condensed), m.Chat.ID)
-					} else {
-						tgReplyMessage(tgStart(db, m, Detailed), m.Chat.ID)
-					}
-				case "carrier_unsubscribe":
-					tgReplyMessage(tgStop(db, m), m.Chat.ID)
-				case "help":
-					tgReplyMessage(help(), m.Chat.ID)
-				case "start":
-					tgReplyMessage(help(), m.Chat.ID)
-				case "ping":
-					tgReplyMessage(ping(db), m.Chat.ID)
-				}
-			}
-		case ririsdk.CQHttp:
-			if update.IsCommand() {
-				m := update.QQUpdate.Message
-				cmd, args := update.Command()
-				switch cmd {
-				case "carrier_subscribe":
-					if len(args) > 0 && (args[0] == "--condense" || args[0] == "—condense") {
-						qqSendMessage(qqStart(db, m, Condensed), m.Chat.ID, m.Chat.Type)
-					} else {
-						qqSendMessage(qqStart(db, m, Detailed), m.Chat.ID, m.Chat.Type)
-					}
-				case "carrier_unsubscribe":
-					qqSendMessage(qqStop(db, m), m.Chat.ID, m.Chat.Type)
-				case "help":
-					qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
-				case "start":
-					qqSendMessage(help(), m.Chat.ID, m.Chat.Type)
-				case "ping":
-					qqSendMessage(ping(db), m.Chat.ID, m.Chat.Type)
-				}
-			}
+		if !update.IsCommand() {
+			continue
 		}
+		cmd, args := update.Command()
+		dispatchCmd(db, cmd, update, args)
 	}
+}
+
+var cmdMap = map[string]func(db *gorm.DB, update botapi.Update, args []string) string{
+	"carrier_subscribe#yt2nd":   carrierSubscribe,
+	"carrier_unsubscribe#yt2nd": carrierUnsubscribe,
+	"ping#yt2nd":                ping,
+	"status#yt2nd":              ping,
+	"start#yt2nd":               help,
+	"help#yt2nd":                help,
+}
+
+func carrierUnsubscribe(db *gorm.DB, update botapi.Update, args []string) string {
+	if update.Messenger == ririsdk.Telegram {
+		return tgStop(db, update.TGUpdate.Message)
+	} else {
+		return qqStop(db, update.QQUpdate.Message)
+	}
+}
+
+func carrierSubscribe(db *gorm.DB, update botapi.Update, args []string) string {
+	level := Detailed
+	if len(args) > 0 && (args[0] == "--condense" || args[0] == "—condense") {
+		level = Condensed
+	}
+	if update.Messenger == ririsdk.Telegram {
+		return tgStart(db, update.TGUpdate.Message, level)
+	} else {
+		return qqStart(db, update.QQUpdate.Message, level)
+	}
+}
+
+func dispatchCmd(db *gorm.DB, cmd string, update botapi.Update, args []string) {
+	if len(cmd) < len("#yt2nd") || cmd[len(cmd)-len("#yt2nd"):] != "#yt2nd" {
+		cmd = cmd + "#yt2nd"
+	}
+	c, ok := cmdMap[cmd]
+	if !ok {
+		return
+	}
+	text := c(db, update, args)
+	mc := botapi.MessageConfig{}
+	mc.DisableWebPreview = true
+	update.Reply(mc, text)
 }
 
 func tgReplyMarkdownMessage(text string, reqChatID int64) {
 	sc := botapi.NewTGSendConfig(reqChatID)
 	sc.ParseMode = botapi.FormatMarkdown
-	sc.DisableWebPreview = true
-	bot.Send(sc, text)
-}
-
-func tgReplyMessage(text string, reqChatID int64) {
-	sc := botapi.NewTGSendConfig(reqChatID)
 	sc.DisableWebPreview = true
 	bot.Send(sc, text)
 }
@@ -197,12 +195,12 @@ func tgStop(db *gorm.DB, m *tg.Message) string {
 	return "您的订阅已取消，qaq"
 }
 
-func help() string {
-	return "/carrier_subscribe - 订阅搬运机器人的通知（详细）\n/carrier_subscribe --condense - 订阅搬运机器人的通知（精简）\n" +
-		"/carrier_unsubscribe - 退订搬运机器人的通知\n/help - 显示此帮助\n/ping - 测试是否在线"
+func help(db *gorm.DB, update botapi.Update, args []string) string {
+	return "虹咲搬运机器人：\n/carrier_subscribe#yt2nd - 订阅搬运机器人的通知（详细）\n/carrier_subscribe#yt2nd --condense - 订阅搬运机器人的通知（精简）\n" +
+		"/carrier_unsubscribe#yt2nd - 退订搬运机器人的通知\n（#号及后面的部分可以省略）"
 }
 
-func ping(db *gorm.DB) string {
+func ping(db *gorm.DB, update botapi.Update, args []string) string {
 	keywords, err := model.GetKeywords(db)
 	if err != nil {
 		log.Error(err)
