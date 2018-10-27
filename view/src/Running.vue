@@ -68,7 +68,7 @@
     }
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
     pre {
         white-space: pre-wrap;
         word-wrap: break-word;

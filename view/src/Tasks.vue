@@ -223,7 +223,7 @@
     }
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
     a {
         word-break: break-all;
     }

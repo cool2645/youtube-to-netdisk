@@ -13,7 +13,7 @@
     }
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
     ul {
         padding: 0;
         margin: 20px auto;

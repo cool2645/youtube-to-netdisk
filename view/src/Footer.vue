@@ -15,7 +15,7 @@
     }
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
     footer {
         margin: 20px auto;
     }

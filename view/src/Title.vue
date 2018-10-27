@@ -20,7 +20,7 @@
     }
 </script>
 
-<style scoped>
+<style lang="stylus" scoped>
     @media (max-width: 600px) {
         .ribbon {
             display: none;
