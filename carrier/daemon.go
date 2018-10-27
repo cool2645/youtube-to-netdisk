@@ -1,6 +1,7 @@
 package carrier
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/cool2645/youtube-to-netdisk/model"
 	"github.com/pkg/errors"
@@ -66,15 +67,48 @@ func Push(task *model.Task) (ok bool, err error) {
 		task.State = "Queuing"
 		err = model.CreateTask(model.Db, task)
 		if err != nil {
-			log.Error(err)
-		} else {
-			go func() {
-				queue <- *task
-			}()
-			messages <- *task
+			ok = false
+			return
 		}
+		err = extractInfo(task)
+		if err != nil {
+			ok = false
+			return
+		}
+		messages <- *task
 		ok = true
 	}
+	return
+}
+
+func extractInfo(task *model.Task) (err error) {
+	runCmd(task.ID, "python3", "-u", "../lib/extract_info.py", task.URL)
+	log_, err := ReadLog(task.ID)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	var infoDict InfoDict
+	err = json.Unmarshal([]byte(log_), &infoDict)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	task.Title = infoDict.Title
+	task.Description = infoDict.Description
+	task.Author = infoDict.Creator
+	if infoDict.RequestedSubtitles != nil {
+		sbt, _ := json.Marshal(infoDict.RequestedSubtitles)
+		task.Subtitles = string(sbt)
+	}
+	err = model.SaveTask(model.Db, task)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	go func() {
+		queue <- *task
+	}()
 	return
 }
 
@@ -107,7 +141,7 @@ func runCarrier(task model.Task) {
 
 	// run command and read log
 	// run in dir static
-	task.State2 = runCmd(task.ID, config.TEMP_PATH, "python3", "-u", "../lib/download.py", task.URL)
+	task.State2 = runCmd(task.ID, "python3", "-u", "../lib/download.py", task.URL)
 	var err error
 	task.Log, err = ReadLog(task.ID)
 	if err != nil {
@@ -178,8 +212,9 @@ func ReadLog(taskID int64) (log_ string, err error) {
 	return
 }
 
-func runCmd(id int64, tempPath string, c string, a ...string) (state string) {
-	tempPath = tempPath + "/" + strconv.FormatInt(id, 10)
+func runCmd(id int64, c string, a ...string) (state string) {
+	tempPath := config.TEMP_PATH + "/" + strconv.FormatInt(id, 10)
+	os.RemoveAll(tempPath)
 	os.MkdirAll(tempPath, os.ModePerm)
 	fo, err := os.Create(tempPath + "/" + strconv.FormatInt(id, 10) + ".log")
 	if err != nil {

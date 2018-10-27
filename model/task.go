@@ -13,6 +13,7 @@ type Task struct {
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
 	URL         string    `json:"url"`
+	Subtitles   string    `json:"subtitles"`
 	State       string    `json:"state"`
 	State2      string    `json:"state2"`
 	Reason      string    `json:"reason"`
@@ -34,7 +35,7 @@ func CreateTask(db *gorm.DB, task *Task) (err error) {
 }
 
 func GetTasks(db *gorm.DB, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
-	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
+	noLog := "id, title, description, author, url, subtitles, state, state2, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
