@@ -1,0 +1,7 @@
+db_name = "yt2nd"
+db_user = "root"
+db_pass = ""
+db_charset = "utf8mb4,utf8"
+db_collation = "utf8mb4_unicode_ci"
+
+temp_path = "/tmp/yt2nd"

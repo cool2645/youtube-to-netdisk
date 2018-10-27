@@ -1,0 +1,4 @@
+port = 9826
+allow_origin = ["*"]
+api_prefix = "/api"
+view_dir = "view"

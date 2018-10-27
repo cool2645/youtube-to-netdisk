@@ -1,0 +1,6 @@
+.idea
+config.toml
+__pycache__
+*~
+*.mp4
+youtube-to-netdisk
