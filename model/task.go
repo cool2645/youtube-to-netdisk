@@ -8,19 +8,19 @@ import (
 )
 
 type Task struct {
-	ID          int64 `gorm:"AUTO_INCREMENT"`
-	Title       string
-	Description string
-	Author      string
-	URL         string
-	State       string
-	State2      string
-	Reason      string
-	FileName    string
-	ShareLink   string
-	Log         string `sql:"type:text;"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          int64 `gorm:"AUTO_INCREMENT" json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Author      string `json:"author"`
+	URL         string `json:"url"`
+	State       string `json:"state"`
+	State2      string `json:"state2"`
+	Reason      string `json:"reason"`
+	FileName    string `json:"file_name"`
+	ShareLink   string `json:"share_link"`
+	Log         string `sql:"type:text;" json:"log"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func CreateTask(db *gorm.DB, task *Task) (err error) {

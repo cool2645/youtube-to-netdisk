@@ -8,9 +8,9 @@ import (
 )
 
 type Keyword struct {
-	ID        uint `gorm:"AUTO_INCREMENT"`
-	Keyword   string
-	CreatedAt time.Time
+	ID        uint `gorm:"AUTO_INCREMENT" json:"id"`
+	Keyword   string `json:"keyword"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 
