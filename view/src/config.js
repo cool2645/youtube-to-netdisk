@@ -1,4 +1,3 @@
 export default {
-    urlPrefix: "/api",
-    telegram: "",
+  urlPrefix: "/api",
 }
