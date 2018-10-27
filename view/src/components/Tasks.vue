@@ -77,6 +77,7 @@
         page: 1,
         perPage: 10,
         showLog: false,
+        showLogId: 0,
         log: ""
       }
     },
@@ -170,14 +171,15 @@
               }
               if (!this._isBeingDestroyed && recur) setTimeout(() => {
                 this.updateData()
-              }, 3000);
+              }, 5000);
             }
           )
           .catch(() => {
             if (!this._isBeingDestroyed && recur) setTimeout(() => {
               this.updateData()
-            }, 3000);
+            }, 5000);
           });
+        if (this.showLog) this.showTaskLog(this.showLogId);
       },
       onPageChange(page) {
         this.page = page;
@@ -191,6 +193,7 @@
               if (res.result) {
                 this.log = res.data.log;
                 this.showLog = true;
+                this.showLogId = id;
               }
             }
           );
@@ -213,6 +216,7 @@
           'canceled': task.state === 'Canceled' || /*legacy */ task.state === 'Killed',
           'uploading': task.state === 'Uploading',
           'downloading': task.state === 'Downloading',
+          'queuing': task.state === 'Queuing',
           'rejected': task.state === 'Rejected',
           'show-more': task.showMore
         };
@@ -225,6 +229,14 @@
 </script>
 
 <style lang="stylus" scoped>
+  pre {
+    white-space:pre-wrap;
+    white-space:-moz-pre-wrap;
+    white-space:-pre-wrap;
+    white-space:-o-pre-wrap;
+    word-wrap:break-word;
+  }
+
   a {
     word-break: break-all;
   }
@@ -340,11 +352,11 @@
     color: white
   }
 
-  .uploading {
+  .queuing {
     background: #ffdaa5;
   }
 
-  .uploading .task-card-state-text {
+  .queuing .task-card-state-text {
     color: white
   }
 
@@ -353,6 +365,14 @@
   }
 
   .downloading .task-card-state-text {
+    color: white
+  }
+
+  .uploading {
+    background: #c8e8f9;
+  }
+
+  .uploading .task-card-state-text {
     color: white
   }
 

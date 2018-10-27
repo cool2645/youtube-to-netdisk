@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import {VueMasonryPlugin} from 'vue-masonry'
+import Trigger from './components/Trigger.vue'
 import Nav from './components/Nav.vue'
 import Tasks from './components/Tasks.vue'
 import Keyword from './components/Keyword.vue'
@@ -14,6 +15,7 @@ Vue.component('pagination', LaravelVuePagination);
 
 const routes = [
   {path: '/', component: Tasks},
+  {title: '创建任务', path: '/trigger', component: Trigger},
   {title: '已启动任务', path: '/tasks', component: Tasks},
   {title: '已拒绝任务', path: '/reject-tasks', component: Tasks},
   {title: '关键字', path: '/keywords', component: Keyword},
