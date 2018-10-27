@@ -98,7 +98,7 @@ func extractInfo(task *model.Task) (err error) {
 	}
 	task.Title = infoDict.Title
 	task.Description = infoDict.Description
-	task.Author = infoDict.Creator
+	task.Author = infoDict.Uploader
 	if infoDict.RequestedSubtitles != nil {
 		sbt, _ := json.Marshal(infoDict.RequestedSubtitles)
 		task.Subtitles = string(sbt)

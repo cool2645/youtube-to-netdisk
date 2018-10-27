@@ -14,6 +14,7 @@ with YoutubeDL({
         'writesubtitles': True,
         'allsubtitles': True,
         'quiet': True,
+        'no_warnings': True,
     }) as ydl:
     info_dict = ydl.extract_info(url, download=False)
     print(json.dumps(info_dict))

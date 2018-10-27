@@ -2,6 +2,7 @@ package carrier
 
 type InfoDict struct {
 	Creator            string               `json:"creator"`
+	Uploader           string               `json:"uploader"`
 	Description        string               `json:"description"`
 	Title              string               `json:"title"`
 	RequestedSubtitles map[string]Subtitles `json:"requested_subtitles"`
