@@ -8,17 +8,17 @@ import (
 )
 
 type Task struct {
-	ID          int64 `gorm:"AUTO_INCREMENT" json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Author      string `json:"author"`
-	URL         string `json:"url"`
-	State       string `json:"state"`
-	State2      string `json:"state2"`
-	Reason      string `json:"reason"`
-	FileName    string `json:"file_name"`
-	ShareLink   string `json:"share_link"`
-	Log         string `sql:"type:text;" json:"log"`
+	ID          int64     `gorm:"AUTO_INCREMENT" json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Author      string    `json:"author"`
+	URL         string    `json:"url"`
+	State       string    `json:"state"`
+	State2      string    `json:"state2"`
+	Reason      string    `json:"reason"`
+	FileName    string    `json:"file_name"`
+	ShareLink   string    `json:"share_link"`
+	Log         string    `sql:"type:text;" json:"log"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

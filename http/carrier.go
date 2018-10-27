@@ -2,11 +2,11 @@ package http
 
 import (
 	"github.com/cool2645/youtube-to-netdisk/carrier"
+	"github.com/cool2645/youtube-to-netdisk/model"
+	"github.com/julienschmidt/httprouter"
 	"github.com/yanzay/log"
 	"net/http"
-	"github.com/julienschmidt/httprouter"
 	"strconv"
-	"github.com/cool2645/youtube-to-netdisk/model"
 	"strings"
 )
 
@@ -38,10 +38,10 @@ func triggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		authorName = strings.TrimSpace(authorName)
 	}
 	task := model.Task{
-		Title: title,
-		Author: authorName,
+		Title:       title,
+		Author:      authorName,
 		Description: description,
-		URL: url,
+		URL:         url,
 	}
 	_, err := carrier.Push(&task)
 	if err != nil {

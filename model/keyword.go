@@ -1,18 +1,17 @@
 package model
 
 import (
-	"time"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type Keyword struct {
-	ID        uint `gorm:"AUTO_INCREMENT" json:"id"`
-	Keyword   string `json:"keyword"`
+	ID        uint      `gorm:"AUTO_INCREMENT" json:"id"`
+	Keyword   string    `json:"keyword"`
 	CreatedAt time.Time `json:"created_at"`
 }
-
 
 func GetKeywords(db *gorm.DB) (keywords []Keyword, err error) {
 	err = db.Find(&keywords).Error
