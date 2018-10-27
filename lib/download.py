@@ -11,7 +11,12 @@ url = sys.argv[1]
 
 print(url)
 
-with YoutubeDL({'format': "bestvideo+bestaudio/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best",  'outtmpl': '%(title)s.%(ext)s'}) as ydl:
+with YoutubeDL({
+        'format': "bestvideo+bestaudio/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best",
+        'outtmpl': '%(title)s.%(ext)s',
+        'writesubtitles': True,
+        'allsubtitles': True,
+    }) as ydl:
     info_dict = ydl.extract_info(url, download=True)
     fn = ydl.prepare_filename(info_dict)
 
