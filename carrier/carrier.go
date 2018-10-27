@@ -14,15 +14,16 @@ var uploaders = make([]model.Uploader, 0)
 var broadcasters = make([]model.Broadcaster, 0)
 
 func Use(i interface{}) {
+	if x, ok := i.(model.Broadcaster); ok {
+		broadcasters = append(broadcasters, x)
+	}
 	switch x := i.(type) {
 	case model.Interface:
 		interfaces = append(interfaces, x)
 	case model.Uploader:
 		uploaders = append(uploaders, x)
-	case model.Broadcaster:
-		broadcasters = append(broadcasters, x)
 	default:
-		panic("the parameter implements neither interface nor uploader nor broadcaster")
+		panic("the parameter implements neither interface nor uploader")
 	}
 }
 
@@ -44,11 +45,6 @@ func Start() {
 	model.Db = db
 
 	model.CleanTasks(model.Db)
-
-	for _, b := range broadcasters {
-		log.Infof("starting broadcaster... %s", b.Driver())
-		go b.Listen()
-	}
 
 	log.Info("starting daemon...")
 	go runDaemon()
