@@ -107,17 +107,11 @@ func getTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 		responseJson(w, res, http.StatusInternalServerError)
 		return
 	}
-	if task.State == "Uploading" || task.State == "Downloading" {
-		task.Log, err = carrier.ReadLog(taskID)
-		if err != nil {
-			logging.Error(err)
-			res := map[string]interface{}{
-				"code":   http.StatusInternalServerError,
-				"result": false,
-				"msg":    "Error occurred getting task log: " + err.Error(),
-			}
-			responseJson(w, res, http.StatusInternalServerError)
-		}
+	log, err := carrier.ReadLog(taskID)
+	if err != nil {
+		logging.Error(err)
+	} else {
+		task.Log = log
 	}
 	res := map[string]interface{}{
 		"code":   http.StatusOK,
@@ -160,17 +154,11 @@ func getTaskLog(w http.ResponseWriter, req *http.Request, ps httprouter.Params) 
 		responseJson(w, res, http.StatusInternalServerError)
 		return
 	}
-	if task.State == "Uploading" || task.State == "Downloading" {
-		task.Log, err = carrier.ReadLog(taskID)
-		if err != nil {
-			logging.Error(err)
-			res := map[string]interface{}{
-				"code":   http.StatusInternalServerError,
-				"result": false,
-				"msg":    "Error occurred getting task log: " + err.Error(),
-			}
-			responseJson(w, res, http.StatusInternalServerError)
-		}
+	log, err := carrier.ReadLog(taskID)
+	if err != nil {
+		logging.Error(err)
+	} else {
+		task.Log = log
 	}
 	res := map[string]interface{}{
 		"code":   http.StatusOK,
