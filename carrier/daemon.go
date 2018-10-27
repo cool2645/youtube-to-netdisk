@@ -56,6 +56,8 @@ func Push(task *model.Task) (ok bool, err error) {
 		task.State = "Rejected"
 		err = model.CreateTask(model.Db, task)
 		if err != nil {
+			log.Error(err)
+		} else {
 			messages <- *task
 		}
 		ok = false
@@ -64,6 +66,8 @@ func Push(task *model.Task) (ok bool, err error) {
 		task.State = "Queuing"
 		err = model.CreateTask(model.Db, task)
 		if err != nil {
+			log.Error(err)
+		} else {
 			go func() {
 				queue <- *task
 			}()
@@ -102,7 +106,8 @@ func runCarrier(task model.Task) {
 	model.SaveTask(model.Db, &task)
 
 	// run command and read log
-	task.State2 = runCmd(task.ID, config.TEMP_PATH, "python3", "-u", "lib/download.py", task.URL)
+	// run in dir static
+	task.State2 = runCmd(task.ID, config.TEMP_PATH, "python3", "-u", "../lib/download.py", task.URL)
 	var err error
 	task.Log, err = ReadLog(task.ID)
 	if err != nil {
@@ -154,22 +159,22 @@ func runCarrier(task model.Task) {
 	messages <- task
 }
 
-func ReadLog(taskID int64) (log string, err error) {
+func ReadLog(taskID int64) (log_ string, err error) {
 	fo := config.TEMP_PATH + "/" + strconv.FormatInt(taskID, 10) + "/" + strconv.FormatInt(taskID, 10) + ".log"
 	b, err := ioutil.ReadFile(fo)
 	if err != nil {
 		err = errors.Wrapf(err, "Fail to read from file %s", fo)
 		return
 	}
-	log += string(b)
-	log += "\n"
+	log_ += string(b)
+	log_ += "\n"
 	fe := config.TEMP_PATH + "/" + strconv.FormatInt(taskID, 10) + "/" + strconv.FormatInt(taskID, 10) + ".err.log"
 	b, err = ioutil.ReadFile(fe)
 	if err != nil {
 		err = errors.Wrapf(err, "Fail to read from file %s", fe)
 		return
 	}
-	log += string(b)
+	log_ += string(b)
 	return
 }
 
@@ -202,7 +207,7 @@ func runCmd(id int64, tempPath string, c string, a ...string) (state string) {
 		case id := <-kill:
 			if id == runningId {
 				if err := cmd.Process.Kill(); err != nil {
-					log.Fatalf("failed to kill: %v", err)
+					log.Errorf("failed to kill: %v", err)
 					state = "Running"
 				}
 				log.Info("process killed")
