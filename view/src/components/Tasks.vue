@@ -8,7 +8,7 @@
             <p>{{ task.title }}</p>
             <hr v-if="task.file_name"/>
             <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
-            <a target="_blank" v-if="task.subtitles"
+            <a target="_blank" class="v-for" v-if="task.subtitles"
                v-for="sub in getSubtitles(task.subtitles)"
                :href="'/static/' + getSubtitleFilename(sub, task.file_name)"
                :download="getSubtitleFilename(sub, task.file_name)"
@@ -39,7 +39,7 @@
             </div>
             <hr v-if="task.file_name"/>
             <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
-            <a target="_blank" v-if="task.subtitles"
+            <a target="_blank" class="v-for" v-if="task.subtitles"
                v-for="sub in getSubtitles(task.subtitles)"
                :href="'/static/' + getSubtitleFilename(sub.ext, task.file_name)"
                :download="getSubtitleFilename(sub, task.file_name)"
@@ -261,6 +261,10 @@
 </script>
 
 <style lang="stylus" scoped>
+  .v-for:after {
+    content: ' '
+  }
+
   pre {
     white-space:pre-wrap;
     white-space:-moz-pre-wrap;
