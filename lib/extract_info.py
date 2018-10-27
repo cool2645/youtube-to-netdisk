@@ -9,7 +9,7 @@ if len(sys.argv) <= 1:
 url = sys.argv[1]
 
 with YoutubeDL({
-        'format': "bestvideo+bestaudio/bestvideo[ext=mp4]+bestaudio[ext=m4a]/best",
+        'format': "bestvideo+bestaudio/best",
         'outtmpl': '%(title)s.%(ext)s',
         'writesubtitles': True,
         'allsubtitles': True,

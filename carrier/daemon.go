@@ -73,6 +73,8 @@ func Push(task *model.Task) (ok bool, err error) {
 		err = extractInfo(task)
 		if err != nil {
 			ok = false
+			task.State = "Exception"
+			model.SaveTask(model.Db, task)
 			return
 		}
 		messages <- *task
