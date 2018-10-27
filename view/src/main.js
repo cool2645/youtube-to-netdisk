@@ -8,6 +8,7 @@ import Keyword from './components/Keyword.vue'
 import LaravelVuePagination from 'laravel-vue-pagination';
 import Title from './components/Title.vue'
 import Footer from './components/Footer.vue'
+import config from './config'
 
 Vue.use(VueRouter);
 Vue.use(VueMasonryPlugin);
@@ -17,8 +18,8 @@ const routes = [
   {path: '/', component: Tasks},
   {title: '创建任务', path: '/trigger', component: Trigger},
   {title: '已启动任务', path: '/tasks', component: Tasks},
-  {title: '已拒绝任务', path: '/reject-tasks', component: Tasks},
-  {title: '关键字', path: '/keywords', component: Keyword},
+  {title: '已拒绝任务', path: '/reject-tasks', component: Tasks, hide: !config.enableKeyword},
+  {title: '关键字', path: '/keywords', component: Keyword, hide: !config.enableKeyword},
 ];
 
 const router = new VueRouter({

@@ -14,12 +14,12 @@
           <div id="more" v-show="task.showMore">
             <div><i class="fa fa-id-card-o fa-fw"></i><span><strong>任务编号</strong>&nbsp;&nbsp;{{ task.id }}</span>
             </div>
-            <div><i
+            <div v-if="task.title.trim()"><i
                 class="fa fa-bookmark-o fa-fw"></i><span><strong>稿件标题</strong>&nbsp;&nbsp;{{ task.title.trim() }}</span>
             </div>
-            <div><i class="fa fa-paint-brush fa-fw"></i><span><strong>投稿频道</strong>&nbsp;&nbsp;{{ task.author.trim() }}</span>
+            <div v-if="task.author.trim()"><i class="fa fa-paint-brush fa-fw"></i><span><strong>投稿频道</strong>&nbsp;&nbsp;{{ task.author.trim() }}</span>
             </div>
-            <div><i
+            <div v-if="enableKeyword"><i
                 class="fa fa-question-circle-o fa-fw"></i><span><strong>任务理由</strong>&nbsp;&nbsp;{{ task.reason }}</span>
             </div>
             <div><i class="fa fa-link fa-fw"></i><span><strong>原始地址</strong>&nbsp;&nbsp;<a
@@ -87,6 +87,9 @@
       }
     },
     computed: {
+      enableKeyword() {
+        return config.enableKeyword;
+      },
       title() {
         if (this.$route.path !== "/reject-tasks")
           return "已启动任务";

@@ -1,7 +1,7 @@
 <template>
   <div class="center">
     <ul>
-      <li v-for="route in routes" v-if="route.title"><a href="javascript:;" @click="$router.push(route.path)">{{route.title}}</a>
+      <li v-for="route in routes" v-if="route.title && !route.hide"><a href="javascript:;" @click="$router.push(route.path)">{{route.title}}</a>
       </li>
     </ul>
   </div>
