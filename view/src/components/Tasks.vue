@@ -8,6 +8,11 @@
             <p>{{ task.title }}</p>
             <hr v-if="task.file_name"/>
             <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
+            <a target="_blank" v-if="task.subtitles"
+               v-for="sub in getSubtitles(task.subtitles)"
+               :href="'/static/' + getSubtitleFilename(sub, task.file_name)"
+               :download="getSubtitleFilename(sub, task.file_name)"
+            >{{ sub.lang + '字幕下载' }}</a>
             <span v-if="task.share_link"> | <a target="_blank" :href="getShareUrl(task.share_link)">网盘下载</a>
                             &nbsp;{{ getSharePwd(task.share_link) }}</span>
           </div>
@@ -34,6 +39,11 @@
             </div>
             <hr v-if="task.file_name"/>
             <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
+            <a target="_blank" v-if="task.subtitles"
+               v-for="sub in getSubtitles(task.subtitles)"
+               :href="'/static/' + getSubtitleFilename(sub.ext, task.file_name)"
+               :download="getSubtitleFilename(sub, task.file_name)"
+            >{{ sub.lang + '字幕下载' }}</a>
             <span v-if="task.share_link"> | <a target="_blank" :href="getShareUrl(task.share_link)">网盘下载</a>
                             &nbsp;{{ getSharePwd(task.share_link) }}</span>
           </div>
@@ -117,6 +127,25 @@
       },
     },
     methods: {
+      getSubtitles(str) {
+        if (!str) return [];
+        try {
+          const subtitles = JSON.parse(str);
+          const res = [];
+          for (const k in subtitles) {
+            if (subtitles.hasOwnProperty(k)) {
+              subtitles[k].lang = k;
+              res.push(subtitles[k])
+            }
+          }
+          return res;
+        } catch (e) {
+          return [];
+        }
+      },
+      getSubtitleFilename(sub, filename) {
+        return filename.split('.')[0] + '.' + sub.lang + '.' + sub.ext;
+      },
       updatePerPage() {
         let w = document.body.clientWidth;
         if (w <= 768)

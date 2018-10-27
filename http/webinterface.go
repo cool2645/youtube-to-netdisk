@@ -51,7 +51,7 @@ func (wi WebInterface) Start() {
 	h := c.Handler(mux)
 
 	n := negroni.New()
-	n.Use(negroni.NewStatic(http.Dir("app")))
+	n.Use(negroni.NewStatic(http.Dir("view")))
 	n.UseHandler(h)
 
 	http.ListenAndServe(":"+strconv.FormatInt(config.PORT, 10), n)

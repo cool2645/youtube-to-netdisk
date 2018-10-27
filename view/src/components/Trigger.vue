@@ -8,16 +8,7 @@
     </div>
     <form class="form-horizontal w" @submit="submit">
       <div class="form-group">
-        <label for="title" class="col-sm-2 control-label">标题</label>
-        <div class="col-sm-10">
-          <input type="text" class="form-control" id="title" v-model="form.title"
-                 placeholder="例如：🎄あんしゅか Anshuka 杏夏【MV】||【コイノシルシ - 高原歩美、駆け魂隊 ver.】🎄"
-                 required
-          />
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="url" class="col-sm-2 control-label">地址</label>
+        <label for="url" class="col-sm-2 control-label">视频地址</label>
         <div class="col-sm-10">
           <input type="text" class="form-control" id="url" v-model="form.url"
                  placeholder="例如：https://youtu.be/GmkeBgTqtjk"
@@ -43,7 +34,6 @@
     data() {
       return {
         form: {
-          title: '',
           url: '',
         },
         error: '',
