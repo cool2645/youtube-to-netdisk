@@ -7,10 +7,10 @@
           <div id="brief" v-show="isLoaded && !task.showMore">
             <p>{{ task.title }}</p>
             <hr v-if="task.file_name"/>
-            <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
+            <a target="_blank" v-if="task.file_name" :href="'/static/' + encodeURIComponent(task.file_name)">本地下载</a>
             <a target="_blank" class="v-for" v-if="task.subtitles"
                v-for="sub in getSubtitles(task.subtitles)"
-               :href="'/static/' + getSubtitleFilename(sub, task.file_name)"
+               :href="'/static/' + encodeURIComponent(getSubtitleFilename(sub, task.file_name))"
                :download="getSubtitleFilename(sub, task.file_name)"
             >{{ sub.lang + '字幕下载' }}</a>
             <span v-if="task.share_link"> | <a target="_blank" :href="getShareUrl(task.share_link)">网盘下载</a>
@@ -38,10 +38,10 @@
                                                                  @click="showTaskLog(task.id)">显示日志</a></span>
             </div>
             <hr v-if="task.file_name"/>
-            <a target="_blank" v-if="task.file_name" :href="'/static/' + task.file_name">本地下载</a>
+            <a target="_blank" v-if="task.file_name" :href="'/static/' + encodeURIComponent(task.file_name)">本地下载</a>
             <a target="_blank" class="v-for" v-if="task.subtitles"
                v-for="sub in getSubtitles(task.subtitles)"
-               :href="'/static/' + getSubtitleFilename(sub.ext, task.file_name)"
+               :href="'/static/' + encodeURIComponent(getSubtitleFilename(sub.ext, task.file_name))"
                :download="getSubtitleFilename(sub, task.file_name)"
             >{{ sub.lang + '字幕下载' }}</a>
             <span v-if="task.share_link"> | <a target="_blank" :href="getShareUrl(task.share_link)">网盘下载</a>
