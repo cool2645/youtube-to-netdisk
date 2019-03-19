@@ -61,8 +61,8 @@
           .then(res => {
             this.waiting = false;
             if (res && res.result) {
-              const next = { path: '/' };
-              if (this.$route.query['token']) next.token = this.$route.query['token'];
+              const next = { path: '/tasks' };
+              if (this.$route.query['token']) next.query = { token: this.$route.query['token'] };
               this.$router.push(next);
             } else {
               this.alert(res.msg)
