@@ -43,6 +43,9 @@ func triggerTask(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 		Description: description,
 		URL:         url,
 	}
+	if len(req.Form["token"]) == 1 {
+		task.Token = strings.TrimSpace(req.Form["token"][0])
+	}
 	_, err := carrier.Push(&task)
 	if err != nil {
 		log.Errorf("failed while pushing task: %v", err)

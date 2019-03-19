@@ -13,6 +13,7 @@ func getTasks(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	req.ParseForm()
 	state := "%"
 	order := "asc"
+	token := ""
 	var page uint = 1
 	var perPage uint = 10
 	if len(req.Form["state"]) == 1 {
@@ -20,6 +21,9 @@ func getTasks(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	}
 	if len(req.Form["order"]) == 1 {
 		order = req.Form["order"][0]
+	}
+	if len(req.Form["token"]) == 1 {
+		token = req.Form["token"][0]
 	}
 	if len(req.Form["page"]) == 1 {
 		page64, err := strconv.ParseUint(req.Form["page"][0], 10, 32)
@@ -39,9 +43,9 @@ func getTasks(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	var total uint
 	var err error
 	if state == "Rejected" {
-		tasks, total, err = model.GetRejTasks(model.Db, order, page, perPage)
+		tasks, total, err = model.GetRejTasks(model.Db, order, page, perPage, token)
 	} else {
-		tasks, total, err = model.GetTasks(model.Db, order, page, perPage)
+		tasks, total, err = model.GetTasks(model.Db, order, page, perPage, token)
 	}
 	if err != nil {
 		logging.Error(err)

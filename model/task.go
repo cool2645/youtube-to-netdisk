@@ -20,6 +20,7 @@ type Task struct {
 	FileName    string    `json:"file_name"`
 	ShareLink   string    `json:"share_link"`
 	Log         string    `sql:"type:text;" json:"log"`
+	Token       string    `json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -34,14 +35,20 @@ func CreateTask(db *gorm.DB, task *Task) (err error) {
 	return
 }
 
-func GetTasks(db *gorm.DB, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
+func GetTasks(db *gorm.DB, order string, page uint, perPage uint, token string) (tasks []Task, total uint, err error) {
 	noLog := "id, title, description, author, url, subtitles, state, state2, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
-	err = db.Where("state <> ?", "Rejected").
-		Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
-		Select(noLog).Find(&tasks).Error
+	if token != "" {
+		err = db.Where("state <> ?", "Rejected").Where("token = ?", token).
+			Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
+			Select(noLog).Find(&tasks).Error
+	} else {
+		err = db.Where("state <> ?", "Rejected").
+			Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
+			Select(noLog).Find(&tasks).Error
+	}
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return
@@ -63,14 +70,20 @@ func GetQueuingTasks(db *gorm.DB) (tasks []Task, err error) {
 	return
 }
 
-func GetRejTasks(db *gorm.DB, order string, page uint, perPage uint) (tasks []Task, total uint, err error) {
+func GetRejTasks(db *gorm.DB, order string, page uint, perPage uint, token string) (tasks []Task, total uint, err error) {
 	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
-	err = db.Where("state = ?", "Rejected").
-		Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
-		Select(noLog).Find(&tasks).Error
+	if token != "" {
+		err = db.Where("state = ?", "Rejected").Where("token = ?", token).
+			Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
+			Select(noLog).Find(&tasks).Error
+	} else {
+		err = db.Where("state = ?", "Rejected").
+			Order("updated_at " + order).Limit(perPage).Offset((page - 1) * perPage).
+			Select(noLog).Find(&tasks).Error
+	}
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return

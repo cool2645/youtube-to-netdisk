@@ -1,16 +1,29 @@
 <template>
   <div class="center">
     <ul>
-      <li v-for="route in routes" v-if="route.title && !route.hide"><a href="javascript:;" @click="$router.push(route.path)">{{route.title}}</a>
+      <li v-for="route in routes" v-if="route.title && !route.hide"><a href="javascript:;"
+          @click="pushHistory(route.path)">{{route.title}}</a>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
-
   export default {
     props: ['routes'],
+    methods: {
+      pushHistory(path) {
+        if (this.$route.query['token']) {
+          this.$router.push({
+            path, query: { token: this.$route.query['token'] }
+          })
+        } else {
+          this.$router.push({
+            path
+          })
+        }
+      }
+    }
   }
 </script>
 

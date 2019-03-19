@@ -18,7 +18,7 @@
       </div>
       <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
-          <button v-if="!waiting" type="submit" class="btn btn-primary">一起摇滚吧</button>
+          <button v-if="!waiting" type="submit" class="btn btn-primary">创建搬运任务</button>
           <button v-else disabled type="submit" class="btn btn-primary">提交中，请稍候...</button>
         </div>
       </div>
@@ -35,11 +35,16 @@
       return {
         form: {
           url: '',
+          token: '',
         },
         error: '',
         showAlert: false,
         waiting: false
       }
+    },
+    mounted() {
+      if (this.$route.query['token']) this.form.token = this.$route.query['token'];
+      if (this.$route.query['url']) this.form.url = this.$route.query['url'];
     },
     methods: {
       submit(e) {
@@ -56,7 +61,9 @@
           .then(res => {
             this.waiting = false;
             if (res && res.result) {
-              this.$router.push('/');
+              const next = { path: '/' };
+              if (this.$route.query['token']) next.token = this.$route.query['token'];
+              this.$router.push(next);
             } else {
               this.alert(res.msg)
             }

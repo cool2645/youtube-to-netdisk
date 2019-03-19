@@ -88,12 +88,15 @@
         perPage: 10,
         showLog: false,
         showLogId: 0,
+        token: "",
         log: ""
       }
     },
     watch: {
       $route() {
-        this.page = 1
+        this.page = 1;
+        this.token = '';
+        if (this.$route.query['token']) this.token = this.$route.query['token'];
       }
     },
     computed: {
@@ -175,6 +178,7 @@
       updateData(recur = true) {
         fetch(config.urlPrefix + '/task?' + urlParam({
           page: this.page,
+          token: this.token,
           perPage: this.updatePerPage(),
           order: 'desc',
           state: this.rejected ? "Rejected" : "%"
@@ -255,6 +259,7 @@
       }
     },
     mounted() {
+      if (this.$route.query['token']) this.token = this.$route.query['token'];
       this.updateData()
     }
   }
