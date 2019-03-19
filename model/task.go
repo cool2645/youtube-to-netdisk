@@ -53,7 +53,11 @@ func GetTasks(db *gorm.DB, order string, page uint, perPage uint, token string) 
 		err = errors.Wrap(err, "GetTasks")
 		return
 	}
-	err = db.Model(&Task{}).Where("state <> ?", "Rejected").Count(&total).Error
+	if token != "" {
+		err = db.Model(&Task{}).Where("state <> ?", "Rejected").Where("token = ?", token).Count(&total).Error
+	} else {
+		err = db.Model(&Task{}).Where("state <> ?", "Rejected").Count(&total).Error
+	}
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return
@@ -88,7 +92,11 @@ func GetRejTasks(db *gorm.DB, order string, page uint, perPage uint, token strin
 		err = errors.Wrap(err, "GetTasks")
 		return
 	}
-	err = db.Model(&Task{}).Where("state = ?", "Rejected").Count(&total).Error
+	if token != "" {
+		err = db.Model(&Task{}).Where("state = ?", "Rejected").Where("token = ?", token).Count(&total).Error
+	} else {
+		err = db.Model(&Task{}).Where("state = ?", "Rejected").Count(&total).Error
+	}
 	if err != nil {
 		err = errors.Wrap(err, "GetTasks")
 		return
