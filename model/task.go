@@ -9,6 +9,7 @@ import (
 
 type Task struct {
 	ID          int64     `gorm:"AUTO_INCREMENT" json:"id"`
+	YoutubeID   string    `json:"youtube_id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Author      string    `json:"author"`
@@ -36,7 +37,7 @@ func CreateTask(db *gorm.DB, task *Task) (err error) {
 }
 
 func GetTasks(db *gorm.DB, order string, page uint, perPage uint, token string) (tasks []Task, total uint, err error) {
-	noLog := "id, title, description, author, url, subtitles, state, state2, reason, file_name, share_link, created_at, updated_at"
+	noLog := "id, youtube_id, title, description, author, url, subtitles, state, state2, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}
@@ -75,7 +76,7 @@ func GetQueuingTasks(db *gorm.DB) (tasks []Task, err error) {
 }
 
 func GetRejTasks(db *gorm.DB, order string, page uint, perPage uint, token string) (tasks []Task, total uint, err error) {
-	noLog := "id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
+	noLog := "id, youtube_id, title, description, author, url, state, reason, file_name, share_link, created_at, updated_at"
 	if perPage == 0 {
 		perPage = 10
 	}

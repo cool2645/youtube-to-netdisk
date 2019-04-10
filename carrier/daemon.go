@@ -84,7 +84,7 @@ func Push(task *model.Task) (ok bool, err error) {
 }
 
 func extractInfo(task *model.Task) (err error) {
-	runCmd(task.ID, "python3", "-u", "../lib/extract_info.py", task.URL)
+	runCmd(task.ID, "static/" + task.YoutubeID, "python3", "-u", "../../lib/extract_info.py", task.URL)
 	log_, err := ReadLog(task.ID)
 	if err != nil {
 		log.Error(err)
@@ -96,6 +96,7 @@ func extractInfo(task *model.Task) (err error) {
 		log.Error(err)
 		return
 	}
+	task.YoutubeID = infoDict.ID
 	task.Title = infoDict.Title
 	task.Description = infoDict.Description
 	task.Author = infoDict.Uploader
@@ -143,7 +144,7 @@ func runCarrier(task model.Task) {
 
 	// run command and read log
 	// run in dir static
-	task.State2 = runCmd(task.ID, "python3", "-u", "../lib/download.py", task.URL)
+	task.State2 = runCmd(task.ID, "static/" + task.YoutubeID, "python3", "-u", "../../lib/download.py", task.URL)
 	var err error
 	task.Log, err = ReadLog(task.ID)
 	if err != nil {
@@ -214,7 +215,7 @@ func ReadLog(taskID int64) (log_ string, err error) {
 	return
 }
 
-func runCmd(id int64, c string, a ...string) (state string) {
+func runCmd(id int64, dir string, c string, a ...string) (state string) {
 	tempPath := config.TEMP_PATH + "/" + strconv.FormatInt(id, 10)
 	os.RemoveAll(tempPath)
 	os.MkdirAll(tempPath, os.ModePerm)
@@ -227,7 +228,8 @@ func runCmd(id int64, c string, a ...string) (state string) {
 		log.Error(err)
 	}
 	cmd := exec.Command(c, a...)
-	cmd.Dir = "static"
+	cmd.Dir = dir
+	os.MkdirAll(dir, 0755)
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
 	go io.Copy(fo, stdout)
