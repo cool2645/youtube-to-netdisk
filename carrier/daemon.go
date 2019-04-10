@@ -84,7 +84,7 @@ func Push(task *model.Task) (ok bool, err error) {
 }
 
 func extractInfo(task *model.Task) (err error) {
-	runCmd(task.ID, "static/" + task.YoutubeID, "python3", "-u", "../../lib/extract_info.py", task.URL)
+	runCmd(task.ID, "static", "python3", "-u", "../lib/extract_info.py", task.URL)
 	log_, err := ReadLog(task.ID)
 	if err != nil {
 		log.Error(err)
